@@ -1,0 +1,30 @@
+header
+{
+    width: 100%;
+    text-align: center;
+}
+h1
+{
+    color: #23ad08;
+    font-size: 200%; 
+    text-align: center;
+}
+h2
+{
+    color: black;
+    font-size: 120%;
+    text-align: center;
+}
+p
+{
+    text-align: center;
+}
+section
+{
+    background-color: #23ad081f; 
+    border: 2px white;
+    border-radius: 15px;
+    padding: 15px;
+    margin: 20px 0px;
+}
+
