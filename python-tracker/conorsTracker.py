@@ -1,6 +1,6 @@
 import cv2 as cv
 
-cap = cv.VideoCapture('Videos/layoutish.mp4')
+cap = cv.VideoCapture('Videos/frisbee.mp4')
 
 #412, 130, 17, 8 box coordinates from CroppedThrow frisbee box selection 
 #455, 139, 16, 12 box coordinates from flowThrow frisbee box selection
@@ -49,7 +49,7 @@ while True:
     success, bboxC = tracker2.update(img)
     success, bboxM = tracker3.update(img)
 
-    if counter == 4 :
+    if counter == 9:
         xcordB = bboxB[0] + (bboxB[2] / 2)
         ycordB = bboxB[1] + (bboxB[3] / 2)
         xcordC = bboxC[0] + (bboxC[2] / 2)

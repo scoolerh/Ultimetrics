@@ -30,16 +30,24 @@ def compare() :
     yTotalDiffM = 0.0
     ySquaredTotalDiffM = 0.0
 
-    #now we know the lists are the same length
-    for i in range(len(trackedCoordsListB)):
+    for i in range(len(truthCoordsList)):
         truthXY = truthCoordsList[i].split(',')
         truthXY[1] = truthXY[1].strip('\n')
-        trackedXYb = trackedCoordsListB[i].split(',')
-        trackedXYb[1] = trackedXYb[1].strip('\n')
-        trackedXYc = trackedCoordsListC[i].split(',')
-        trackedXYc[1] = trackedXYc[1].strip('\n')
-        trackedXYm = trackedCoordsListM[i].split(',')
-        trackedXYm[1] = trackedXYm[1].strip('\n')
+        if (trackedCoordsListB[i]):
+            trackedXYb = trackedCoordsListB[i].split(',')
+            trackedXYb[1] = trackedXYb[1].strip('\n')
+        else: 
+            trackedXYb = [0.0,0.0]
+        if (trackedCoordsListC[i]):
+            trackedXYc = trackedCoordsListC[i].split(',')
+            trackedXYc[1] = trackedXYc[1].strip('\n')
+        else: 
+            trackedXYc = [0.0,0.0]
+        if (trackedCoordsListM): 
+            trackedXYm = trackedCoordsListM[i].split(',')
+            trackedXYm[1] = trackedXYm[1].strip('\n')
+        else: 
+            trackedXYm = [0.0,0.0]
         
         #update stats
         num += 1
