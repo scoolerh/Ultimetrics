@@ -2,9 +2,6 @@ import cv2 as cv
 
 cap = cv.VideoCapture('Videos/frisbee.mp4')
 
-#412, 130, 17, 8 box coordinates from CroppedThrow frisbee box selection 
-#455, 139, 16, 12 box coordinates from flowThrow frisbee box selection
-
 tracker = cv.legacy.TrackerBoosting_create()
 tracker2 = cv.legacy.TrackerCSRT_create()
 tracker3 = cv.legacy.TrackerMIL_create()
@@ -13,19 +10,10 @@ ret, img = cap.read()
 
 bbox = cv.selectROI(img, False)
 
-#croppedThrow box for frisbee
-#bbox = 412, 130, 17, 8
-
-#flowThrow box
-#bbox = 455, 139, 16, 12
-
-print("Bounding box coordinates: " + str(bbox))
 tracker.init(img, bbox)
 tracker2.init(img, bbox)
 tracker3.init(img, bbox)
 
-#setup for rudimentary center tracking
-# we will start with 1/5 frames checking the center of the box
 counter = 0
 trackedCoordsBoosting = open("coordsListBoosting.txt", "w")
 trackedCoordsCSRT = open("coordsListCSRT.txt", "w")
@@ -50,14 +38,15 @@ while True:
     success, bboxM = tracker3.update(img)
 
     if counter == 9:
+        #get coords of the algos' bboxes 
         xcordB = bboxB[0] + (bboxB[2] / 2)
         ycordB = bboxB[1] + (bboxB[3] / 2)
+        trackedCoordsBoosting.write(str(xcordB) + ',' + str(ycordB) + '\n')
         xcordC = bboxC[0] + (bboxC[2] / 2)
         ycordC = bboxC[1] + (bboxC[3] / 2)
+        trackedCoordsCSRT.write(str(xcordC) + ',' + str(ycordC) + '\n')
         xcordM = bboxM[0] + (bboxM[2] / 2)
         ycordM = bboxM[1] + (bboxM[3] / 2)
-        trackedCoordsBoosting.write(str(xcordB) + ',' + str(ycordB) + '\n')
-        trackedCoordsCSRT.write(str(xcordC) + ',' + str(ycordC) + '\n')
         trackedCoordsMIL.write(str(xcordM) + ',' + str(ycordM) + '\n')
 
         counter = -1
