@@ -29,9 +29,6 @@ while True:
 
     success, bbox = tracker.update(img)
 
-    #couldn't find a way to combine preprocessing + box detection
-    #although i just tried it quickly 
-
     if success:
         drawBox(img,bbox)
 
