@@ -58,7 +58,7 @@ def rel_Lat(lat):
 def rel_Long(long, lat):
     topLeftLong = -93.146163
     relLong = topLeftLong-long
-    sinInput = 3.1415926/2 - lat
+    sinInput = math.pi/2 - lat
     sinOutput = sin(sinInput)
     return relLong*sinOutput
 
