@@ -8,6 +8,8 @@ import math
 
 # Should we convert from lat/long to meters before/after this function, thinking after
 
+# To go from screen_coords to world_coords we need to have screen_z (third component of vector) is this something we just need to calculate once?
+
 
 
 
@@ -201,12 +203,15 @@ world_coords = np.array([world_x, world_y, world_z, world_w])
 
 # screen_coords = np.array([screen_x, screen_y, screen_z, screen_w])
 
-
-# world_coords = T @ R @ homogeneous_division(invP @ invV @ screen_coords)
 # T * R * homo(invP * invV * screenCords)
 
 screen_coords = V @ homogeneous_division(P @ invR @ invT @ world_coords)
 
+# # Want to eventually be able to run this but to do so we need the third component of screen coords
+# world_coords = T @ R @ homogeneous_division(invP @ invV @ screen_coords)
+
+
+# Our goal is to have this output 2007, 532 if it is working properly (pixel coordiantes of top right corner of field)
 
 print_vector(screen_coords)
 
