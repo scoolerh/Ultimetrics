@@ -210,5 +210,3 @@ screen_coords = V @ homogeneous_division(P @ invR @ invT @ world_coords)
 
 print_vector(screen_coords)
 
-
-
