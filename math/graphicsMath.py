@@ -2,6 +2,18 @@ import numpy as np
 from numpy.linalg import inv
 import math
 
+# Sequence of Events
+# Begin with Frame of video and accompanying data (lat, long, elevation, pitch, yaw)
+# We want a function which takes in these inputs and a pixel data and outputs the world coordinates of that pixel
+
+# Should we convert from lat/long to meters before/after this function, thinking after
+
+
+
+
+
+# THESE two functions relLat and relLong are attempting to scale our latitude and longitude relative to the top left corner of the field
+# NOTE field runs east/west so the to top left corner is actually the farthest north and east corner
 # increase in latitude is a northward movement
 def relLat(lat):
     topLeftLat = 44.464654
@@ -13,18 +25,18 @@ def relLong(long):
     return (topLeftLong-long)*111139
 
 
-# test inputs, drone information
+# Test inputs, this is all information related to the drone itself
 inputLat = relLat(44.4645524473822)
 inputLong = relLong(-93.1474988221592)
-print("input rrelative lat: " + str(inputLat))
+print("input relative lat: " + str(inputLat))
 print("input relative long: " + str(inputLong))
 inputHeightFeet = 74.1 # feet
 inputHeight = inputHeightFeet*0.3048 # meters
 inputGimbalPitch = -24.5
-# inputGimbalRoll = 0
 inputGimbalYaw = 18
+# inputGimbalRoll = 0
 
-#top-right corner of field test information
+#Top-right corner of field test information (farthest south and east corner)
 pixel_lat = relLat(44.464395)
 pixel_long = relLong(-93.146314)
 print("top right relative lat: " + str(pixel_lat))
