@@ -241,15 +241,6 @@ pitchMatrix = np.array([
 ])
 
 
-
-
-# four options for the matrix: R, R^T, R', R'^T
-# R = yawMatrix @ pitchMatrix
-# R = pitchMatrix @ yawMatrix
-# R = inv(R)
-# invR = inv(R)
-# Hardcode the inverses for production code
-
 # ----------------------------------------------------------------------------------------------------------------------------
 # Computational Section
 
@@ -309,24 +300,7 @@ def test_function():
     matrix_test(R, testName, worldCoords1, worldCoords2, worldCoords3)
 
 
-
-
 test_function()
 
 
-
-
-# screen_coords = np.array([screen_x, screen_y, screen_z, screen_w])
-
-# T * R * homo(invP * invV * screenCords)
-
 # screen_coords = V @ homogeneous_division(P @ invR @ invT @ world_coords)
-
-# # Want to eventually be able to run this but to do so we need the third component of screen coords
-# world_coords = T @ R @ homogeneous_division(invP @ invV @ screen_coords)
-
-
-# Our goal is to have this output 2007, 532 if it is working properly (pixel coordinates of top right corner of field)
-
-# print_vector(screen_coords)
-
