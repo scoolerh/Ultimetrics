@@ -19,21 +19,23 @@ import math
 # Computes cosine, make sure x is in radians NOT degrees
 def cos(x):
     # takes in angle in degrees, outputs cos(x)
-    return math.cos(math.radians(x))
+    # return math.cos(math.radians(x))
+    return math.cos(x)
 
 # Computes sine, make sure x is in radians NOT degrees
 def sin(x):
     # takes in angle in degrees, outputs cos(x)
-    return math.sin(math.radians(x))
+    # return math.sin(math.radians(x))
+    return math.sin(x)
 
 # Computes tangent, make sure x is in radians NOT degrees
 def tan(x):
     # takes in angle in degrees, outputs cos(x)
-    return math.tan(math.radians(x))
+    # return math.tan(math.radians(x))
+    return math.tan(x)
 
 # Executes homogeneous division based off third component
 def homogeneous_division(vec):
-    # Ensure the fourth component (w) is not zero to avoid division by zero
     if vec[3] != 0:
         newVec = np.array([vec[0]/vec[3], vec[1]/vec[3], vec[2]/vec[3], 1])
         return newVec
@@ -74,9 +76,14 @@ def pixel_diff(prediction, truth):
 
 def matrix_test(R, testName, worldCoords1, worldCoords2, worldCoords3):
     invR = inv(R)
-    predictedScreenCoords1 = V @ homogeneous_division(P @ invR @ invT @ worldCoords1)  # Predicted pixel data for Top Left Corner
-    predictedScreenCoords2 = V @ homogeneous_division(P @ invR @ invT @ worldCoords2)  # Predicted pixel data for Top Right Corner
-    predictedScreenCoords3 = V @ homogeneous_division(P @ invR @ invT @ worldCoords3)  # Predicted pixel data for Yellow Corner
+    # predictedScreenCoords1 = homogeneous_division(V @ P @ invR @ invT @ worldCoords1)  # Predicted pixel data for Top Left Corner
+    # predictedScreenCoords2 = homogeneous_division(V @ P @ invR @ invT @ worldCoords2)  # Predicted pixel data for Top Right Corner
+    # predictedScreenCoords3 = homogeneous_division(V @ P @ invR @ invT @ worldCoords3)  # Predicted pixel data for Yellow Corner
+
+    
+    predictedScreenCoords1 = homogeneous_division(V @ P @ invR @ invT @ worldCoords1)  # Predicted pixel data for Top Left Corner
+    predictedScreenCoords2 = homogeneous_division(V @ P @ invR @ invT @ worldCoords2)  # Predicted pixel data for Top Right Corner
+    predictedScreenCoords3 = homogeneous_division(V @ P @ invR @ invT @ worldCoords3)  # Predicted pixel data for Yellow Corner
 
     xDiffLeft, yDiffLeft = pixel_diff(predictedScreenCoords1, topLeftTruePixels)
     xDiffRight, yDiffRight = pixel_diff(predictedScreenCoords2, topRightTruePixels)
@@ -136,11 +143,13 @@ droneRelY = rel_Long(droneLong, droneLat)
 droneHeightFeet = 74.1 # Feet
 droneHeight = droneHeightFeet*0.3048 # Meters
 
-degree = math.pi/180.0
 inputGimbalPitchDeg = -24.5 # Degrees
 inputGimbalYawDeg = 18 # Degrees
-dronePitch = inputGimbalPitchDeg*degree # Radians
-droneYaw = inputGimbalYawDeg*degree # Radians
+dronePitch = math.radians(inputGimbalPitchDeg) # Radians
+droneYaw = math.radians(inputGimbalYawDeg) # Radians
+
+# dronePitch = inputGimbalPitchDeg
+# droneYaw = inputGimbalYawDeg
 
 
 # ----------------------------------------------------------------------------------------------------------------------------
@@ -156,6 +165,8 @@ V = np.array([
     [0, 0, 0, 1]
 ])
 
+
+# V = inv(V)
 invV = inv(V)
 
 
@@ -172,7 +183,7 @@ far = -16/9
 # near is related to the aspect ratio
 near = -9/16
 # top view of camera
-top = -near * tan(fovy)
+top = -near * tan(fov)
 # bottom view of camera
 bottom = -top
 # right view of camera
@@ -301,6 +312,3 @@ def test_function():
 
 
 test_function()
-
-
-# screen_coords = V @ homogeneous_division(P @ invR @ invT @ world_coords)
