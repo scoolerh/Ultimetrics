@@ -54,7 +54,7 @@ def print_vector(vector):
 # Increase in latitude is a northward movement
 def rel_Lat(lat):
     topLeftLat = 44.46475110139
-    return (topLeftLat-lat)*111139
+    return (topLeftLat-lat)*111132.954
 
 # increase in long means a eastward movement
 def rel_Long(long, lat):
