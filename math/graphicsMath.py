@@ -76,10 +76,6 @@ def pixel_diff(prediction, truth):
 
 def matrix_test(R, testName, worldCoords1, worldCoords2, worldCoords3):
     invR = inv(R)
-    # predictedScreenCoords1 = homogeneous_division(V @ P @ invR @ invT @ worldCoords1)  # Predicted pixel data for Top Left Corner
-    # predictedScreenCoords2 = homogeneous_division(V @ P @ invR @ invT @ worldCoords2)  # Predicted pixel data for Top Right Corner
-    # predictedScreenCoords3 = homogeneous_division(V @ P @ invR @ invT @ worldCoords3)  # Predicted pixel data for Yellow Corner
-
     
     predictedScreenCoords1 = homogeneous_division(V @ P @ invR @ invT @ worldCoords1)  # Predicted pixel data for Top Left Corner
     predictedScreenCoords2 = homogeneous_division(V @ P @ invR @ invT @ worldCoords2)  # Predicted pixel data for Top Right Corner
@@ -136,6 +132,7 @@ yellowCornerTruePixels = np.array([yellowCornerPixelX, yellowCornerPixelY, 0, 0]
 
 
 # Drone information from the first frame of video
+# Go measure accuracy of the drone in real world
 droneLat = 44.4645524473822
 droneLong = -93.1474988221592
 droneRelX = rel_Lat(droneLat)
@@ -143,8 +140,10 @@ droneRelY = rel_Long(droneLong, droneLat)
 droneHeightFeet = 74.1 # Feet
 droneHeight = droneHeightFeet*0.3048 # Meters
 
-inputGimbalPitchDeg = -24.5 # Degrees
-inputGimbalYawDeg = 18 # Degrees
+
+# Do we have to worry about the yaw of the drone itself? Are we assuming pitch of drone itself is 0?
+inputGimbalPitchDeg = -24.5 # Degrees measured relative to horizontal (parallel to ground) negative is looking down positive is looking up
+inputGimbalYawDeg = 18 # Degrees (relative to east going clockwise)
 dronePitch = math.radians(inputGimbalPitchDeg) # Radians
 droneYaw = math.radians(inputGimbalYawDeg) # Radians
 
@@ -174,18 +173,20 @@ invV = inv(V)
 # PERSPECTIVE PROJECTION MATRIX INFORMATION
 
 # Camera information
-fov = 83
-fovy = fov/2
-# Might want to try with fov not fovy as well
+fov = math.radians(83)
+# fovy = fov/2
 
-far = -16/9
-# -focal length * ratio, ratio is not aspect ratio of screen it should be 10?
-# near is related to the aspect ratio
-near = -9/16
-# top view of camera
-top = -near * tan(fov)
-# bottom view of camera
+
+# fovy = math.pi / 6.0
+focal = 10.0
+ratio = 10.0
+far = -focal * ratio
+near = -focal / ratio
+
+top = focal*tan(fov * 0.5)
 bottom = -top
+
+
 # right view of camera
 right = top * 16/9
 # left view of camera
@@ -233,7 +234,10 @@ invT = inv(T)
 # These are defined at the top of our code
 
 yaw = droneYaw
-pitch = dronePitch
+pitch = -dronePitch
+
+yaw = 0
+# pitch = 0
 
 # Yaw Matrix, accounts for 1/2 of rotational matrix
 yawMatrix = np.array([
