@@ -10,6 +10,7 @@ import csv
 #a number of players
 #the csv file will have the frame number, x coord in terms of yards, and y coord in terms of yards in that order
 def singlePLayerAnimate(data) :
+    n = 1800
     locationData = open(data)
     locationDataReader = csv.reader(locationData)
     #skip the header, store it in case for debugging
