@@ -60,10 +60,12 @@ player_images = []
 for i in range(0, len(trackerList)):
     bbox = cv.selectROI(img, False)
     bboxes.append(bbox)
+    drawBox(img, bbox)
 
     # Captures images of each player
     cropped = static_image[bbox[1]:(bbox[1] + bbox[3]), bbox[0]:(bbox[0] + bbox[2])]
     
+    # Stores images in list
     player_images.append(cropped)
 
     trackerList[i].init(img, bboxes[i])
