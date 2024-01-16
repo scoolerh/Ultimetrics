@@ -59,25 +59,35 @@ def animate(field, playerDataList) :
     #for now we just want one circle, we can make this modular and have more players later
     nextSpot = next(locationDataReader)
     #start with a null player
-    player = Circle(Point(-1, -1), 0)
+    #TODO use the "move" method, and store the previous spots, to make a dx and dy values, so we don't have to re-draw so we don't have to use the constructor over and over again
+    player = Circle(Point(-20, -20), 20)
+    player.draw(field)
+    player.setFill('White')
+    prevX = 0.0
+    prevY = 0.0
     while (nextSpot) :
-        player.undraw()
-        player = Circle(Point(nextSpot[1], nextSpot[2]), 20)
-        player.setFill('White')
-        player.draw(field)
+        
+        player.move((float(nextSpot[1]) - float(prevX)), (float(nextSpot[2]) - float(prevY)))
+        #update previous values 
+        prevX = nextSpot[1]
+        prevY = nextSpot[2]
+
+        #player.draw(field)
         #pause for animation
         #this can be modular for how smooth we want the animation to be 
         #maybe we don't want any waiting at 30 fps
-        time.sleep(.05)
+        #NOTE: for some reason, it seems faster/smoother with a wait as opposed to no wait
+        #time.sleep(.001)
         #debugging
         # field.getMouse()
         #this isn't perfect, because of the flickering
         #and it is NOT fast enough
         nextSpot = next(locationDataReader)
         #debugging
-        print(nextSpot)
+        #print(nextSpot)
+        
     field.close()
     return
 
 test = drawField()
-animate(test, "/Users/cslab/Desktop/Ultimetrics/animation/smoothData1.csv")
+animate(test, "./smoothData1.csv")
