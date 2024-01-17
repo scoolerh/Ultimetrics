@@ -206,8 +206,8 @@ inputGimbalPitchDeg = -23.3 # Degrees measured relative to horizontal (parallel 
 inputGimbalPitchDegWOSD = -24.5 # Pitch degree with the -1.2 degree of OSD.pitch incorporated
 newPitchDeg = 90 + inputGimbalPitchDeg
 inputGimbalYawDeg = 101.5 # Degrees (relative to north going clockwise)
-# dronePitch = math.radians(newPitchDeg) # Radians
-dronePitch = math.radians(inputGimbalPitchDeg)
+dronePitch = math.radians(newPitchDeg) # Radians
+# dronePitch = math.radians(inputGimbalPitchDeg)
 droneYaw = math.radians(inputGimbalYawDeg) # Radians
 
 # dronePitch = inputGimbalPitchDeg
@@ -300,21 +300,37 @@ invT = inv(T)
 # These are defined at the top of our code
 
 yaw = droneYaw
-pitch = -dronePitch
+pitch = dronePitch
 
-# Yaw Matrix, accounts for 1/2 of rotational matrix
+# # Yaw Matrix, accounts for 1/2 of rotational matrix
+# yawMatrix = np.array([
+#     [cos(-yaw), -1*sin(-yaw), 0, 0],
+#     [sin(-yaw), cos(-yaw), 0, 0],
+#     [0, 0, 1, 0],
+#     [0, 0, 0, 1]
+# ])
+
+# # Pitch Matrix, accounts for 1/2 of rotational matrix
+# pitchMatrix = np.array([
+#     [1, 0, 0, 0],
+#     [0, cos(math.pi/2 + pitch), -1*sin(math.pi/2 + pitch), 0],
+#     [0, sin(math.pi/2 + pitch), cos(math.pi/2 + pitch), 0],
+#     [0, 0, 0, 1]
+# ])
+
+
 yawMatrix = np.array([
-    [cos(-yaw), -1*sin(-yaw), 0, 0],
-    [sin(-yaw), cos(-yaw), 0, 0],
+    [cos(yaw), -sin(yaw), 0, 0],
+    [sin(yaw), cos(yaw), 0, 0],
     [0, 0, 1, 0],
     [0, 0, 0, 1]
 ])
 
 # Pitch Matrix, accounts for 1/2 of rotational matrix
 pitchMatrix = np.array([
-    [1, 0, 0, 0],
-    [0, cos(math.pi/2 + pitch), -1*sin(math.pi/2 + pitch), 0],
-    [0, sin(math.pi/2 + pitch), cos(math.pi/2 + pitch), 0],
+    [cos(pitch), 0, sin(pitch), 0],
+    [0, 1, 0, 0],
+    [-sin(pitch), 0, cos(pitch), 0],
     [0, 0, 0, 1]
 ])
 
