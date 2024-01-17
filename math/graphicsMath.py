@@ -193,20 +193,21 @@ yellowCornerTruePixels = np.array([yellowCornerGraphicsX, yellowCornerGraphicsY,
 
 # Drone information from the first frame of video
 # Go measure accuracy of the drone in real world
-droneLat = 44.4645524473822
-droneLong = -93.1474988221592
+droneLat = 44.46457025
+droneLong = -93.14746161
 droneRelX = rel_Long(droneLong, droneLat)
 droneRelY = rel_Lat(droneLat)
-droneHeightFeet = 74.1 # Feet
+droneHeightFeet = 90.5 # Feet
 droneHeight = droneHeightFeet*0.3048 # Meters
 
 
 # Do we have to worry about the yaw of the drone itself? Are we assuming pitch of drone itself is 0?
-inputGimbalPitchDeg = -24.5 # Degrees measured relative to horizontal (parallel to ground) negative is looking down positive is looking up
+inputGimbalPitchDeg = -23.3 # Degrees measured relative to horizontal (parallel to ground) negative is looking down positive is looking up, might also have to incorporate the pitch of the drone itself which was at -1.2 degrees
+inputGimbalPitchDegWOSD = -24.5 # Pitch degree with the -1.2 degree of OSD.pitch incorporated
 newPitchDeg = 90 + inputGimbalPitchDeg
-inputGimbalYawDeg = 18 # Degrees (relative to east going clockwise)
+inputGimbalYawDeg = 101.5 # Degrees (relative to north going clockwise)
 # dronePitch = math.radians(newPitchDeg) # Radians
-dronePitch = math.radians(newPitchDeg)
+dronePitch = math.radians(inputGimbalPitchDeg)
 droneYaw = math.radians(inputGimbalYawDeg) # Radians
 
 # dronePitch = inputGimbalPitchDeg
