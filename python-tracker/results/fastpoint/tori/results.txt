@@ -1,0 +1,6 @@
+Standard Error Boosting + Truth X Coordinates: 4.8896923123128015
+Standard Error Boosting + Truth Y Coordinates: 7.0323925839322605
+Standard Error CSRT + Truth X Coordinates: 4.869898262891032
+Standard Error CSRT + Truth Y Coordinates: 5.714813287334146
+Standard Error MIL + Truth X Coordinates: 4.940555728770895
+Standard Error MIL + Truth Y Coordinates: 4.527692569068709
