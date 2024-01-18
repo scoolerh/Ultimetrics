@@ -317,57 +317,144 @@ yaw = droneYaw
 pitch = dronePitch
 roll = droneRoll
 
-# Rotation about the z-axis (turns left and right)
+# # Rotation about the z-axis (turns left and right)
+# yawMatrix = np.array([
+#     [cos(yaw), -sin(yaw), 0, 0],
+#     [sin(yaw), cos(yaw), 0, 0],
+#     [0, 0, 1, 0],
+#     [0, 0, 0, 1]
+# ])
+
+# # Rotation about the y-axis (pitcing up and down)
+# pitchMatrix = np.array([
+#     [cos(pitch), 0, sin(pitch), 0],
+#     [0, 1, 0, 0],
+#     [-sin(pitch), 0, cos(pitch), 0],
+#     [0, 0, 0, 1]
+# ])
+
+# # Rotation about the x-axis (rolling side to side)
+# rollMatrix = np.array([
+#     [1, 0, 0, 0],
+#     [0, cos(roll), -sin(roll), 0],
+#     [0, sin(roll), cos(roll), 0],
+#     [0, 0, 0, 1]
+# ])
+
+# # Matrix used to rotate the cameras persepctive to be relative to the coordinate system we are using
+# R_x = np.array([
+#     [1, 0, 0, 0],
+#     [0, cos(math.pi), 0],
+#     [-sin(-math.pi/2), 0, cos(-math.pi/2), 0],
+#     [0, 0, 0, 1]
+# ])
+
+# # Matrix used to rotate the cameras persepctive to be relative to the coordinate system we are using
+# R_y = np.array([
+#     [cos(-math.pi/2), 0, sin(-math.pi/2), 0],
+#     [0, 1, 0, 0],
+#     [-sin(-math.pi/2), 0, cos(-math.pi/2), 0],
+#     [0, 0, 0, 1]
+# ])
+
+# # Matrix used to rotate the cameras perspective to be relative to the coordinate system we are using
+# R_z = np.array([
+#     [cos(-math.pi/2), -sin(-math.pi/2), 0, 0],
+#     [sin(-math.pi/2), cos(-math.pi/2), 0, 0],
+#     [0, 0, 1, 0],
+#     [0, 0, 0, 1]
+# ])
+
+
+stdNegZ = np.array([0, 0, -1])
+stdY = np.array([0, 1, 0])
+defaultNegZ = np.array([0, 1, 0])
+defaultY = np.array([0, 0, 1])
+
+
 yawMatrix = np.array([
-    [cos(yaw), -sin(yaw), 0, 0],
-    [sin(yaw), cos(yaw), 0, 0],
-    [0, 0, 1, 0],
-    [0, 0, 0, 1]
+    [cos(-yaw), -sin(-yaw), 0],
+    [sin(-yaw), cos(-yaw), 0],
+    [0, 0, 1],
 ])
 
-# Rotation about the y-axis (pitcing up and down)
 pitchMatrix = np.array([
-    [cos(pitch), 0, sin(pitch), 0],
-    [0, 1, 0, 0],
-    [-sin(pitch), 0, cos(pitch), 0],
-    [0, 0, 0, 1]
+    [1, 0, 0],
+    [0, cos(pitch), -sin(pitch)],
+    [0, sin(pitch), cos(pitch)],
 ])
 
-# Rotation about the x-axis (rolling side to side)
-rollMatrix = np.array([
-    [1, 0, 0, 0],
-    [0, cos(roll), -sin(roll), 0],
-    [0, sin(roll), cos(roll), 0],
-    [0, 0, 0, 1]
-])
+R_yp = yawMatrix @ pitchMatrix
+R_py = pitchMatrix @ yawMatrix
 
-# Matrix used to rotate the cameras persepctive to be relative to the coordinate system we are using
-R_x = np.array([
-    [1, 0, 0, 0],
-    [0, cos(math.pi), 0],
-    [-sin(-math.pi/2), 0, cos(-math.pi/2), 0],
-    [0, 0, 0, 1]
-])
+currentNegZ = R_yp @ defaultNegZ
+currentY = R_yp @ defaultY
 
-# Matrix used to rotate the cameras persepctive to be relative to the coordinate system we are using
-R_y = np.array([
-    [cos(-math.pi/2), 0, sin(-math.pi/2), 0],
-    [0, 1, 0, 0],
-    [-sin(-math.pi/2), 0, cos(-math.pi/2), 0],
-    [0, 0, 0, 1]
-])
 
-# Matrix used to rotate the cameras perspective to be relative to the coordinate system we are using
-R_z = np.array([
-    [cos(-math.pi/2), -sin(-math.pi/2), 0, 0],
-    [sin(-math.pi/2), cos(-math.pi/2), 0, 0],
-    [0, 0, 1, 0],
-    [0, 0, 0, 1]
-])
+def basisRotation(stdY, stdNegZ, inputY, inputNegZ):
+    # Calculate cross product of stdY and stdNegZ
+    cross_product_R = np.cross(stdY, stdNegZ)
+    
+    # Create matrix R
+    R = np.array([stdY, stdNegZ, cross_product_R])
+    
+    # Calculate cross product of inputY and inputNegZ
+    cross_product_S = np.cross(inputY, inputNegZ)
+    
+    # Create matrix S
+    S = np.array([inputY, inputNegZ, cross_product_S])
+    
+    Rtranspose = np.transpose(R)
+    f = S @ Rtranspose
+    matrix4d = np.zeros((4, 4))
+    matrix4d[:3, :3] = f
+    matrix4d[3, 3] = 1
+    print(matrix4d)
+    return matrix4d
 
+R = basisRotation(stdY, stdNegZ, currentY, currentNegZ)
+
+currentNegZ = R_py @ defaultNegZ
+currentY = R_py @ defaultY
+
+R2 = basisRotation(stdY, stdNegZ, currentY, currentNegZ)
 
 # ----------------------------------------------------------------------------------------------------------------------------
 # Computational Section
+
+def test_function4():
+    worldCoords1 = np.array([topLeftRelX, topLeftRelY, 0, 1]) # Top Left Corner
+    worldCoords2 = np.array([topRightRelX, topRightRelY, 0, 1]) # Top Right Corner
+    worldCoords3 = np.array([yellowCornerRelX, yellowCornerRelY, 0, 1]) # Yellow Corner
+
+    # 8 Combinations we need to try
+    # yaw @ pitch
+    # inv(yaw) @ pitch
+    # yaw @ inv(pitch)
+    # inv(yaw) @ inv(pitch)
+    # pitch @ yaw
+    # inv(pitch) @ yaw
+    # pitch @ inv(yaw)
+    # inv(pitch) @ inv(yaw)
+
+    results = []
+    # Basis Rotation 1 (pitch then yaw)
+    R = basisRotation(stdY, stdNegZ, currentY, currentNegZ)
+    testName = "basisRotation1"
+    results.append(matrix_test(R, P, testName, worldCoords1, worldCoords2, worldCoords3))
+
+    # Basis Rotation 2 (yaw then p)
+    R = R2
+    testName = "basisRotation2"
+    results.append(matrix_test(R, P, testName, worldCoords1, worldCoords2, worldCoords3))
+
+
+    print(results)
+    print(min(results))
+    print(np.argmin(results))
+
+
+
 
 def test_function():
     worldCoords1 = np.array([topLeftRelX, topLeftRelY, 0, 1]) # Top Left Corner
@@ -534,5 +621,5 @@ def test_function3():
         print(f"Best performing rotation matrix:\n {best_parameters[2]}")
         
 # test_function()
-test_function2()
+test_function4()
 # test_coordinate_data()
