@@ -140,7 +140,7 @@ def matrix_test(R, P, testName, worldCoords1, worldCoords2, worldCoords3):
         # print("\n ------------------------------------------- \n")
 
         return max([abs(xDiffLeft), abs(yDiffLeft), abs(xDiffRight), abs(yDiffRight), abs(xDiffYellow), abs(yDiffYellow)])
-        return total_diff
+        # return total_diff
     except Exception as e:
         print(f"An error occurred in test: {testName}\nError: {e}")
         return float('inf')  # Return a large value for failed cases
@@ -163,6 +163,7 @@ topleftPixelY = 534
 # Where origin is bottom left (built for graphics methods)
 topLeftGraphicsX = topLeftPixelX
 topLeftGraphicsY = 2160 - topleftPixelY
+# topLeftGraphicsY = topleftPixelY
 topLeftTruePixels = np.array([topLeftGraphicsX, topLeftGraphicsY, 0, 0])
 
 # Top right corner of playing field
@@ -176,6 +177,7 @@ topRightPixelY = 527
 # Where origin is bottom left
 topRightGraphicsX = topRightPixelX
 topRightGraphicsY = 2160 - topRightPixelY
+# topRightGraphicsY = topRightPixelY
 topRightTruePixels = np.array([topRightGraphicsX, topRightGraphicsY, 0, 0])
 
 # Bottom Right instersection of yellow lines
@@ -189,6 +191,7 @@ yellowCornerPixelY = 1445
 # Where origin is bottom left
 yellowCornerGraphicsX = yellowCornerPixelX
 yellowCornerGraphicsY = 2160 - yellowCornerPixelY
+# yellowCornerGraphicsY = yellowCornerPixelY
 yellowCornerTruePixels = np.array([yellowCornerGraphicsX, yellowCornerGraphicsY, 0, 0])
 
 
@@ -327,13 +330,30 @@ yawMatrix = np.array([
     [0, 0, 0, 1]
 ])
 
-# Pitch Matrix, accounts for 1/2 of rotational matrix
+# # Pitch Matrix, accounts for 1/2 of rotational matrix
+# pitchMatrix = np.array([
+#     [1, 0, 0, 0],
+#     [0, cos(pitch), -sin(pitch), 0],
+#     [0, sin(pitch), cos(pitch), 0],
+#     [0, 0, 0, 1]
+# ])
+
+
 pitchMatrix = np.array([
     [cos(pitch), 0, sin(pitch), 0],
     [0, 1, 0, 0],
     [-sin(pitch), 0, cos(pitch), 0],
     [0, 0, 0, 1]
 ])
+
+
+# pitchMatrix = np.array([
+#     [cos(pitch), 0, sin(pitch), 0],
+#     [0, 1, 0, 0],
+#     [-sin(pitch), 0, cos(pitch), 0],
+#     [0, 0, 0, 1]
+# ])
+
 
 
 # ----------------------------------------------------------------------------------------------------------------------------
