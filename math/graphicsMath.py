@@ -207,7 +207,7 @@ inputGimbalPitchDeg = -23.3 # Degrees measured relative to horizontal (parallel 
 inputGimbalPitchDegWOSD = -24.5 # Pitch degree with the -1.2 degree of OSD.pitch incorporated
 newPitchDeg = 90 + inputGimbalPitchDeg
 inputGimbalYawDeg = 101.5 # Degrees (relative to north going clockwise)
-dronePitch = math.radians(newPitchDeg) # Radians
+dronePitch = math.radians(inputGimbalPitchDeg) # Radians
 # dronePitch = math.radians(inputGimbalPitchDeg)
 droneYaw = math.radians(inputGimbalYawDeg) # Radians
 
