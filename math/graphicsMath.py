@@ -260,9 +260,9 @@ right = top * 16/9
 left = -right
 
 P = np.array([
-    [(2*near)/(right-1), 0, (right + left)/(right - left), 0],
-    [0, (2*near)/(top - bottom), (top + bottom)/(top - bottom), 0],
-    [0, 0, -(far + near)/(far - near), (-2*far*near)/(far-near)],
+    [(-2*near)/(right-left), 0, (right + left)/(right - left), 0],
+    [0, (-2*near)/(top - bottom), (top + bottom)/(top - bottom), 0],
+    [0, 0, (near + far)/(near - far), (-2*far*near)/(near - far)],
     [0, 0, -1, 0]
 ])
 
@@ -391,7 +391,8 @@ def test_function():
     results.append(matrix_test(R, P, testName, worldCoords1, worldCoords2, worldCoords3))
     
     # inv(pitch) @ inv(yaw)
-    R = inv(pitchMatrix) @ inv(yawMatrix)
+    # R = inv(pitchMatrix) @ inv(yawMatrix)
+    # R = np.array
     testName = "inv(pitch) @ inv(yaw)"
     results.append(matrix_test(R, P, testName, worldCoords1, worldCoords2, worldCoords3))
 
