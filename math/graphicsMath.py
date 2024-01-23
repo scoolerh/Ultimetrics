@@ -114,7 +114,7 @@ def pixel_diff(prediction, truth):
 
 def matrix_test(R, P, testName, worldCoords1, worldCoords2, worldCoords3):
     try:
-        invR = inv(R)
+        invR = np.transpose(R) # inverting and doing the transpose are equivalent here
         
         predictedScreenCoords1 = homogeneous_division(V @ P @ invR @ invT @ worldCoords1)  # Predicted pixel data for Top Left Corner
         predictedScreenCoords2 = homogeneous_division(V @ P @ invR @ invT @ worldCoords2)  # Predicted pixel data for Top Right Corner
@@ -140,7 +140,7 @@ def matrix_test(R, P, testName, worldCoords1, worldCoords2, worldCoords3):
         # print("\n ------------------------------------------- \n")
 
         return max([abs(xDiffLeft), abs(yDiffLeft), abs(xDiffRight), abs(yDiffRight), abs(xDiffYellow), abs(yDiffYellow)])
-        return total_diff
+        # return total_diff
     except Exception as e:
         print(f"An error occurred in test: {testName}\nError: {e}")
         return float('inf')  # Return a large value for failed cases
@@ -163,6 +163,7 @@ topleftPixelY = 534
 # Where origin is bottom left (built for graphics methods)
 topLeftGraphicsX = topLeftPixelX
 topLeftGraphicsY = 2160 - topleftPixelY
+# topLeftGraphicsY = topleftPixelY
 topLeftTruePixels = np.array([topLeftGraphicsX, topLeftGraphicsY, 0, 0])
 
 # Top right corner of playing field
@@ -176,6 +177,7 @@ topRightPixelY = 527
 # Where origin is bottom left
 topRightGraphicsX = topRightPixelX
 topRightGraphicsY = 2160 - topRightPixelY
+# topRightGraphicsY = topRightPixelY
 topRightTruePixels = np.array([topRightGraphicsX, topRightGraphicsY, 0, 0])
 
 # Bottom Right instersection of yellow lines
@@ -189,6 +191,7 @@ yellowCornerPixelY = 1445
 # Where origin is bottom left
 yellowCornerGraphicsX = yellowCornerPixelX
 yellowCornerGraphicsY = 2160 - yellowCornerPixelY
+# yellowCornerGraphicsY = yellowCornerPixelY
 yellowCornerTruePixels = np.array([yellowCornerGraphicsX, yellowCornerGraphicsY, 0, 0])
 
 
@@ -210,6 +213,7 @@ inputGimbalYawDeg = 101.5 # Degrees (relative to north going clockwise)
 dronePitch = math.radians(inputGimbalPitchDeg) # Radians
 # dronePitch = math.radians(inputGimbalPitchDeg)
 droneYaw = math.radians(inputGimbalYawDeg) # Radians
+droneRoll = math.radians(-3)
 
 # dronePitch = inputGimbalPitchDeg
 # droneYaw = inputGimbalYawDeg
@@ -259,12 +263,21 @@ right = top * 1/16
 # left view of camera
 left = -right
 
+# Assumes frustrum is centered along z axis, this is the P from josh's material
 P = np.array([
     [(-2*near)/(right-left), 0, (right + left)/(right - left), 0],
     [0, (-2*near)/(top - bottom), (top + bottom)/(top - bottom), 0],
     [0, 0, (near + far)/(near - far), (-2*far*near)/(near - far)],
     [0, 0, -1, 0]
 ])
+
+# # This is the persepctive projection matrxi from the youtube video https://www.youtube.com/watch?v=U0_ONQQ5ZNM
+# P = np.array([
+#     [(2*near)/(right-left), 0, -(right + left)/(right - left), 0],
+#     [0, (2*near)/(bottom - top), -(bottom + top)/(bottom - top), 0],
+#     [0, 0, far/(far - near), (-far*near)/(far - near)],
+#     [0, 0, 1, 0]
+# ])
 
 invP = inv(P)
 
@@ -281,7 +294,6 @@ y = droneRelY
 # Elevation value recorded on drone
 z = droneHeight
 
-
 T = np.array([
     [1, 0, 0, x],
     [0, 1, 0, y],
@@ -296,48 +308,153 @@ invT = inv(T)
 
 # ROTATIONAL MATRIX INFORMATION
 
-# yaw is the yaw of the gimbal
-# pitch is the pitch of the gimbal
+# yaw is the yaw of the gimbal measured in 360 degrees relative to true north (we already converted to radians)
+# pitch is the pitch of the gimbal measured relative to the horizontal plane of the drone (already convereted to radians, may need to incorporate the pitch of the drone itself)
+# roll is the roll of the drone measured (we already converted to radians)
 # These are defined at the top of our code
 
 yaw = droneYaw
 pitch = dronePitch
+roll = droneRoll
 
-# # Yaw Matrix, accounts for 1/2 of rotational matrix
+# # Rotation about the z-axis (turns left and right)
 # yawMatrix = np.array([
-#     [cos(-yaw), -1*sin(-yaw), 0, 0],
-#     [sin(-yaw), cos(-yaw), 0, 0],
+#     [cos(yaw), -sin(yaw), 0, 0],
+#     [sin(yaw), cos(yaw), 0, 0],
 #     [0, 0, 1, 0],
 #     [0, 0, 0, 1]
 # ])
 
-# # Pitch Matrix, accounts for 1/2 of rotational matrix
+# # Rotation about the y-axis (pitcing up and down)
 # pitchMatrix = np.array([
+#     [cos(pitch), 0, sin(pitch), 0],
+#     [0, 1, 0, 0],
+#     [-sin(pitch), 0, cos(pitch), 0],
+#     [0, 0, 0, 1]
+# ])
+
+# # Rotation about the x-axis (rolling side to side)
+# rollMatrix = np.array([
 #     [1, 0, 0, 0],
-#     [0, cos(math.pi/2 + pitch), -1*sin(math.pi/2 + pitch), 0],
-#     [0, sin(math.pi/2 + pitch), cos(math.pi/2 + pitch), 0],
+#     [0, cos(roll), -sin(roll), 0],
+#     [0, sin(roll), cos(roll), 0],
+#     [0, 0, 0, 1]
+# ])
+
+# # Matrix used to rotate the cameras persepctive to be relative to the coordinate system we are using
+# R_x = np.array([
+#     [1, 0, 0, 0],
+#     [0, cos(math.pi), 0],
+#     [-sin(-math.pi/2), 0, cos(-math.pi/2), 0],
+#     [0, 0, 0, 1]
+# ])
+
+# # Matrix used to rotate the cameras persepctive to be relative to the coordinate system we are using
+# R_y = np.array([
+#     [cos(-math.pi/2), 0, sin(-math.pi/2), 0],
+#     [0, 1, 0, 0],
+#     [-sin(-math.pi/2), 0, cos(-math.pi/2), 0],
+#     [0, 0, 0, 1]
+# ])
+
+# # Matrix used to rotate the cameras perspective to be relative to the coordinate system we are using
+# R_z = np.array([
+#     [cos(-math.pi/2), -sin(-math.pi/2), 0, 0],
+#     [sin(-math.pi/2), cos(-math.pi/2), 0, 0],
+#     [0, 0, 1, 0],
 #     [0, 0, 0, 1]
 # ])
 
 
+stdNegZ = np.array([0, 0, -1])
+stdY = np.array([0, 1, 0])
+defaultNegZ = np.array([0, 1, 0])
+defaultY = np.array([0, 0, 1])
+
+
 yawMatrix = np.array([
-    [cos(yaw), -sin(yaw), 0, 0],
-    [sin(yaw), cos(yaw), 0, 0],
-    [0, 0, 1, 0],
-    [0, 0, 0, 1]
+    [cos(-yaw), -sin(-yaw), 0],
+    [sin(-yaw), cos(-yaw), 0],
+    [0, 0, 1],
 ])
 
-# Pitch Matrix, accounts for 1/2 of rotational matrix
 pitchMatrix = np.array([
-    [cos(pitch), 0, sin(pitch), 0],
-    [0, 1, 0, 0],
-    [-sin(pitch), 0, cos(pitch), 0],
-    [0, 0, 0, 1]
+    [1, 0, 0],
+    [0, cos(pitch), -sin(pitch)],
+    [0, sin(pitch), cos(pitch)],
 ])
 
+R_yp = yawMatrix @ pitchMatrix
+R_py = pitchMatrix @ yawMatrix
+
+currentNegZ = R_yp @ defaultNegZ
+currentY = R_yp @ defaultY
+
+
+def basisRotation(stdY, stdNegZ, inputY, inputNegZ):
+    # Calculate cross product of stdY and stdNegZ
+    cross_product_R = np.cross(stdY, stdNegZ)
+    
+    # Create matrix R
+    R = np.array([stdY, stdNegZ, cross_product_R])
+    
+    # Calculate cross product of inputY and inputNegZ
+    cross_product_S = np.cross(inputY, inputNegZ)
+    
+    # Create matrix S
+    S = np.array([inputY, inputNegZ, cross_product_S])
+    
+    Rtranspose = np.transpose(R)
+    f = S @ Rtranspose
+    matrix4d = np.zeros((4, 4))
+    matrix4d[:3, :3] = f
+    matrix4d[3, 3] = 1
+    print(matrix4d)
+    return matrix4d
+
+R = basisRotation(stdY, stdNegZ, currentY, currentNegZ)
+
+currentNegZ = R_py @ defaultNegZ
+currentY = R_py @ defaultY
+
+R2 = basisRotation(stdY, stdNegZ, currentY, currentNegZ)
 
 # ----------------------------------------------------------------------------------------------------------------------------
 # Computational Section
+
+def test_function4():
+    worldCoords1 = np.array([topLeftRelX, topLeftRelY, 0, 1]) # Top Left Corner
+    worldCoords2 = np.array([topRightRelX, topRightRelY, 0, 1]) # Top Right Corner
+    worldCoords3 = np.array([yellowCornerRelX, yellowCornerRelY, 0, 1]) # Yellow Corner
+
+    # 8 Combinations we need to try
+    # yaw @ pitch
+    # inv(yaw) @ pitch
+    # yaw @ inv(pitch)
+    # inv(yaw) @ inv(pitch)
+    # pitch @ yaw
+    # inv(pitch) @ yaw
+    # pitch @ inv(yaw)
+    # inv(pitch) @ inv(yaw)
+
+    results = []
+    # Basis Rotation 1 (pitch then yaw)
+    R = basisRotation(stdY, stdNegZ, currentY, currentNegZ)
+    testName = "basisRotation1"
+    results.append(matrix_test(R, P, testName, worldCoords1, worldCoords2, worldCoords3))
+
+    # Basis Rotation 2 (yaw then p)
+    R = R2
+    testName = "basisRotation2"
+    results.append(matrix_test(R, P, testName, worldCoords1, worldCoords2, worldCoords3))
+
+
+    print(results)
+    print(min(results))
+    print(np.argmin(results))
+
+
+
 
 def test_function():
     worldCoords1 = np.array([topLeftRelX, topLeftRelY, 0, 1]) # Top Left Corner
@@ -391,8 +508,7 @@ def test_function():
     results.append(matrix_test(R, P, testName, worldCoords1, worldCoords2, worldCoords3))
     
     # inv(pitch) @ inv(yaw)
-    # R = inv(pitchMatrix) @ inv(yawMatrix)
-    # R = np.array
+    R = inv(pitchMatrix) @ inv(yawMatrix)
     testName = "inv(pitch) @ inv(yaw)"
     results.append(matrix_test(R, P, testName, worldCoords1, worldCoords2, worldCoords3))
 
@@ -400,7 +516,54 @@ def test_function():
     print(min(results))
     print(np.argmin(results))
 
+# Same as test_function but just with the roll matrixa added onto the end
 def test_function2():
+    worldCoords1 = np.array([topLeftRelX, topLeftRelY, 0, 1]) # Top Left Corner
+    worldCoords2 = np.array([topRightRelX, topRightRelY, 0, 1]) # Top Right Corner
+    worldCoords3 = np.array([yellowCornerRelX, yellowCornerRelY, 0, 1]) # Yellow Corner
+
+    # 8 Combinations we need to try
+    # yaw @ pitch
+    # inv(yaw) @ pitch
+    # yaw @ inv(pitch)
+    # inv(yaw) @ inv(pitch)
+    # pitch @ yaw
+    # inv(pitch) @ yaw
+    # pitch @ inv(yaw)
+    # inv(pitch) @ inv(yaw)
+
+    results = []
+    # pitch then yaw then roll (rollMatrix @ yawMatrix @ pitchMatrix) with camera rotation first
+    R = rollMatrix @ yawMatrix @ pitchMatrix @ R_y @ R_z
+    testName = "rollMatrix @ yawMatrix @ pitchMatrix @ R_y @ R_z"
+    results.append(matrix_test(R, P, testName, worldCoords1, worldCoords2, worldCoords3))
+
+    # pitch then yaw then roll (rollMatrix @ yawMatrix @ pitchMatrix) with camera rotation last
+    R = R_y @ R_z @ rollMatrix @ yawMatrix @ pitchMatrix
+    testName = "R = R_y @ R_z @ rollMatrix @ yawMatrix @ pitchMatrix"
+    results.append(matrix_test(R, P, testName, worldCoords1, worldCoords2, worldCoords3))
+
+    # inv(roll) then inv(yaw) then inv(pitch) with camera rotation first
+    R = inv(pitchMatrix) @ inv(yawMatrix) @ inv(rollMatrix) @ R_y @ R_z
+    testName = "inv(pitchMatrix) @ inv(yawMatrix) @ inv(rollMatrix) @ R_y @ R_z"
+    results.append(matrix_test(R, P, testName, worldCoords1, worldCoords2, worldCoords3))
+
+    # inv(roll) then inv(yaw) then inv(pitch) with camera rotation last
+    R = R_y @ R_z @ inv(pitchMatrix) @ inv(yawMatrix) @ inv(rollMatrix)
+    testName = "R_y @ R_z @ inv(pitchMatrix) @ inv(yawMatrix) @ inv(rollMatrix)"
+    results.append(matrix_test(R, P, testName, worldCoords1, worldCoords2, worldCoords3))
+
+    # inv(roll) then inv(yaw) then inv(pitch) with camera rotation last
+    R = R_y @ R_z @ pitchMatrix @ yawMatrix @ rollMatrix
+    testName = "R_y @ R_z @ inv(pitchMatrix) @ inv(yawMatrix) @ inv(rollMatrix)"
+    results.append(matrix_test(R, P, testName, worldCoords1, worldCoords2, worldCoords3))
+
+
+    print(results)
+    print(min(results))
+    print(np.argmin(results))
+
+def test_function3():
     worldCoords1 = np.array([topLeftRelX, topLeftRelY, 0, 1])  # Top Left Corner
     worldCoords2 = np.array([topRightRelX, topRightRelY, 0, 1])  # Top Right Corner
     worldCoords3 = np.array([yellowCornerRelX, yellowCornerRelY, 0, 1])  # Yellow Corner
@@ -457,6 +620,6 @@ def test_function2():
         print(f"Best performing parameters: Focal = {best_parameters[0]}, Ratio = {best_parameters[1]}")
         print(f"Best performing rotation matrix:\n {best_parameters[2]}")
         
-test_function()
-# test_function2()
+# test_function()
+test_function4()
 # test_coordinate_data()
