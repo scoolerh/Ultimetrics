@@ -241,17 +241,17 @@ invV = inv(V)
 # PERSPECTIVE PROJECTION MATRIX INFORMATION
 
 # Camera information
-fov = math.radians(83)
+fov = math.radians(82)
 # fovy = fov/2
 
 # Test I ran said that Focal = 1, Ratio = 2, Yaw = 315, Pitch = 45 was the best combo
-focal = 10.0
+focal = 15
 # focal = 1000.0
 
 
 # far = -focal * ratio
 # near = -focal / ratio
-far = -1000.0
+far = 1.0
 near = -1.0
 
 top = focal*tan(fov * 0.5)
@@ -259,7 +259,7 @@ bottom = -top
 
 
 # right view of camera
-right = top * 16/9
+right = top * 1/16
 # left view of camera
 left = -right
 

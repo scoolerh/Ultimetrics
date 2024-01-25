@@ -9,19 +9,37 @@ import numpy as np
 #matplotlib - this is where we can actually visualize the data
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
-from matplotlib.animation import FuncAnimation
+import matplotlib.colors as clrs
+import matplotlib.animation as animation
+#from matplotlib.animation import FuncAnimation
+
+import ffmpeg
+plt.rcParams['animation.ffmpeg_path'] ='./animation.mp4'
+
+
+
+
 
 #get our csv reader ready
 import csv
 #set up csvList
-playerData = open("./smoothData1.csv")
+playerData = open("./smoothData2.csv")
 playerDataReader = csv.reader(playerData)
 #clear header, store for debugging
 header = next(playerDataReader)
+#the number of players is (1/2)(x-1), where x is the length of the header
+numPlayers = int((.5)*(len(header) -1))
+#debug
+#print(numPlayers)
+#numPlayers is working
 
-#initialize some global variables
-
-xdata, ydata = 0.0, 0.0
+#initialize some global variables, we want lists of the x and y data
+playerVal = 0
+xdatas = []
+ydatas = []
+for i in range(numPlayers) :
+    xdatas.append(0)
+    ydatas.append(0)
 
 
 
@@ -62,24 +80,46 @@ def generate_field() :
 
 
 # plot static graph
-#not really sure why we're plotting it again but here we are
+
 fig, ax = generate_field()
-ln, = ax.plot([], [], 'bo')
+
+#we want a line for each player, marked as a red o
+playerList = []
+for i in range(numPlayers) :
+    ln, = ax.plot([], [], color=(1.0,0.0,0.0), marker='o')
+    playerList.append(ln)
 
 #how to plot a single moment
 def update(frame):
     nextData = next(playerDataReader)
     
     if (nextData) :
-        xdata = (float(nextData[1]) / 10)
-        ydata = (float(nextData[2]) / 10)
-    ln.set_data(xdata, ydata)
-    return ln,
+        #update each player
+        for i in range (1, len(header), 2) :
+            playerVal = int((.5) * (i - 1))
+            xdatas[playerVal] = (float(nextData[i]) / 10)
+            ydatas[playerVal] = (float(nextData[i+1]) / 10)
+            playerList[playerVal].set_data(xdatas[playerVal], ydatas[playerVal])
+
+
+    # if (nextData) :
+    #     xdata = (float(nextData[1]) / 10)
+    #     ydata = (float(nextData[2]) / 10)
+    # ln.set_data(xdata, ydata)
+    return playerList,
 #debugging
 #plt.show()
 
-anim = FuncAnimation(fig, update, frames=range(1,100), repeat=False )
+anim = animation.FuncAnimation(fig, update, frames=range(1,100), repeat=False, interval=2 )
+
 plt.show()
+##animation##
+FFwriter = animation.FFMpegWriter()
+output = open('./animation.mp4', 'w')
+anim.save(output, writer = FFwriter)
+
+
+
 
 #notes
 #don't think/worry about SQL
