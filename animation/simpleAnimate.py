@@ -62,7 +62,7 @@ def animate(field, playerDataList) :
     #TODO use the "move" method, and store the previous spots, to make a dx and dy values, so we don't have to re-draw so we don't have to use the constructor over and over again
     player = Circle(Point(-20, -20), 20)
     player.draw(field)
-    player.setFill('White')
+    player.setFill()
     prevX = 0.0
     prevY = 0.0
     while (nextSpot) :
