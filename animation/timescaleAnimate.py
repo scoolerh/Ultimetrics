@@ -10,7 +10,15 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import matplotlib.colors as clrs
-from matplotlib.animation import FuncAnimation
+import matplotlib.animation as animation
+#from matplotlib.animation import FuncAnimation
+
+import ffmpeg
+plt.rcParams['animation.ffmpeg_path'] ='./animation.mp4'
+
+
+
+
 
 #get our csv reader ready
 import csv
@@ -102,8 +110,16 @@ def update(frame):
 #debugging
 #plt.show()
 
-anim = FuncAnimation(fig, update, frames=range(1,100), repeat=False, interval=2 )
+anim = animation.FuncAnimation(fig, update, frames=range(1,100), repeat=False, interval=2 )
+
 plt.show()
+##animation##
+FFwriter = animation.FFMpegWriter()
+output = open('./animation.mp4', 'w')
+anim.save(output, writer = FFwriter)
+
+
+
 
 #notes
 #don't think/worry about SQL
