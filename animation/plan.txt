@@ -3,7 +3,7 @@
 -> annotate an event/ add multiple players in simple 
 -> multiple players in matplotlib 
     data set up like 
--> make it look like a field in matplotlib
+-> make it look like a field in matplotlib (X)
 -> 
 -> 
 

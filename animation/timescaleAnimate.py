@@ -9,6 +9,7 @@ import numpy as np
 #matplotlib - this is where we can actually visualize the data
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
+import matplotlib.colors as clrs
 from matplotlib.animation import FuncAnimation
 
 #get our csv reader ready
@@ -62,7 +63,7 @@ def generate_field() :
 
 
 # plot static graph
-#not really sure why we're plotting it again but here we are
+
 fig, ax = generate_field()
 ln, = ax.plot([], [], 'bo')
 
