@@ -126,18 +126,18 @@ def matrix_test(R, P, testName, worldCoords1, worldCoords2, worldCoords3):
 
         total_diff = abs(xDiffLeft) + abs(yDiffLeft) + abs(xDiffRight) + abs(yDiffRight) + abs(xDiffYellow) + abs(yDiffYellow)
 
-        # print("\nTesting: " + testName + "\n")
-        # print("Top Left Corner: \n")
-        # print("Predicted X Pixel Diff: " + str(xDiffLeft) + " Value: " + str(predictedScreenCoords1[0]) + "\n")
-        # print("Predicted Y Pixel Diff: " + str(yDiffLeft) + " Value: " + str(predictedScreenCoords1[1]) + "\n")
-        # print("Top Right Corner: \n")
-        # print("Predicted X Pixel Diff: " + str(xDiffRight) + " Value: " + str(predictedScreenCoords2[0]) + "\n")
-        # print("Predicted Y Pixel Diff: " + str(yDiffRight) + " Value: " + str(predictedScreenCoords2[1]) + "\n")
-        # print("Yellow Corner: \n")
-        # print("Predicted X Pixel Diff: " + str(xDiffYellow) + " Value: " + str(predictedScreenCoords3[0]) + "\n")
-        # print("Predicted Y Pixel Diff: " + str(yDiffYellow) + " Value: " + str(predictedScreenCoords3[1]) + "\n")
-        # print("\nTotal Sum of Differences: " + str(total_diff))
-        # print("\n ------------------------------------------- \n")
+        print("\nTesting: " + testName + "\n")
+        print("Top Left Corner: \n")
+        print("Predicted X Pixel Diff: " + str(xDiffLeft) + " Value: " + str(predictedScreenCoords1[0]) + "\n")
+        print("Predicted Y Pixel Diff: " + str(yDiffLeft) + " Value: " + str(predictedScreenCoords1[1]) + "\n")
+        print("Top Right Corner: \n")
+        print("Predicted X Pixel Diff: " + str(xDiffRight) + " Value: " + str(predictedScreenCoords2[0]) + "\n")
+        print("Predicted Y Pixel Diff: " + str(yDiffRight) + " Value: " + str(predictedScreenCoords2[1]) + "\n")
+        print("Yellow Corner: \n")
+        print("Predicted X Pixel Diff: " + str(xDiffYellow) + " Value: " + str(predictedScreenCoords3[0]) + "\n")
+        print("Predicted Y Pixel Diff: " + str(yDiffYellow) + " Value: " + str(predictedScreenCoords3[1]) + "\n")
+        print("\nTotal Sum of Differences: " + str(total_diff))
+        print("\n ------------------------------------------- \n")
 
         return max([abs(xDiffLeft), abs(yDiffLeft), abs(xDiffRight), abs(yDiffRight), abs(xDiffYellow), abs(yDiffYellow)])
         # return total_diff
@@ -384,11 +384,17 @@ pitchMatrix = np.array([
     [0, sin(pitch), cos(pitch)],
 ])
 
-R_yp = yawMatrix @ pitchMatrix
-R_py = pitchMatrix @ yawMatrix
+rollMatrix = np.array([
+    [cos(roll), 0, sin(roll)],
+    [0, 1, 0],
+    [-sin(roll), 0, cos(roll)],
+])
 
-currentNegZ = R_yp @ defaultNegZ
-currentY = R_yp @ defaultY
+# R_yp = yawMatrix @ pitchMatrix
+# R_py = pitchMatrix @ yawMatrix
+
+currentNegZ = yawMatrix @ pitchMatrix @ defaultNegZ
+currentY = yawMatrix @ pitchMatrix @ defaultY
 
 
 def basisRotation(stdY, stdNegZ, inputY, inputNegZ):
@@ -412,10 +418,13 @@ def basisRotation(stdY, stdNegZ, inputY, inputNegZ):
     print(matrix4d)
     return matrix4d
 
+currentNegZ = yawMatrix @ pitchMatrix @ defaultNegZ
+currentY = yawMatrix @ pitchMatrix @ defaultY
+
 R = basisRotation(stdY, stdNegZ, currentY, currentNegZ)
 
-currentNegZ = R_py @ defaultNegZ
-currentY = R_py @ defaultY
+currentNegZ = pitchMatrix @ yawMatrix @ defaultNegZ
+currentY = pitchMatrix @ yawMatrix @ defaultY
 
 R2 = basisRotation(stdY, stdNegZ, currentY, currentNegZ)
 
@@ -440,18 +449,18 @@ def test_function4():
     results = []
     # Basis Rotation 1 (pitch then yaw)
     R = basisRotation(stdY, stdNegZ, currentY, currentNegZ)
-    testName = "basisRotation1"
+    testName = "basisRotation1 pitch then yaw"
     results.append(matrix_test(R, P, testName, worldCoords1, worldCoords2, worldCoords3))
 
     # Basis Rotation 2 (yaw then p)
-    R = R2
-    testName = "basisRotation2"
-    results.append(matrix_test(R, P, testName, worldCoords1, worldCoords2, worldCoords3))
+    R2
+    testName = "basisRotation2 yaw then pitch"
+    results.append(matrix_test(R2, P, testName, worldCoords1, worldCoords2, worldCoords3))
 
 
     print(results)
-    print(min(results))
-    print(np.argmin(results))
+    # print(min(results))
+    # print(np.argmin(results))
 
 
 
