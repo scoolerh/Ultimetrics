@@ -3,10 +3,10 @@
 #want a fun loading message/graphic between phases
 #animation run 
 #instead put in the bottom center coordinate for each player (tracking by feet)
+#perhaps try saving stills instead of videos 
 #deal with lost tracking
 
 # help, instructions
-# pip install waiting before running
 help: 
 	@echo "Welcome to Ultimetrics!"
 	@echo "To get started analyzing film, please add your video in the form of an MP4 file to this folder, and name it 'frisbee.mp4'."

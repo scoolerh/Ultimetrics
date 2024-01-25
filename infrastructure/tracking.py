@@ -2,7 +2,6 @@ import cv2 as cv
 import random
 
 trackerList = []
-f = open("playercoordinates.txt", "w")
 
 def drawBox(img, bbox):
     x, y, w, h = int(bbox[0]), int(bbox[1]), int(bbox[2]), int(bbox[3])
@@ -11,7 +10,7 @@ def drawBox(img, bbox):
     b = random.randint(0,256)
     cv.rectangle (img,(x,y), ((x+w), (y+h)), (r,g,b), 3,1)
 
-for i in range(3): 
+for i in range(2): 
     tracker = cv.legacy.TrackerCSRT_create()
     trackerList.append(tracker)
 
@@ -20,8 +19,8 @@ static_cap = cv.VideoCapture('frisbee.mp4')
 
 ret, img = cap.read()
 
-fourcc = cv.VideoWriter_fourcc('m', 'p', '4', 'v')
-out = cv.VideoWriter("multiplayer.mp4", fourcc, cap.get(cv.CAP_PROP_FPS), (1280,720))
+""" fourcc = cv.VideoWriter_fourcc('m', 'p', '4', 'v')
+out = cv.VideoWriter("multiplayer.mp4", fourcc, cap.get(cv.CAP_PROP_FPS), (1280,720)) """
 
 # Keeping track of players
 ret, static_image = static_cap.read()
@@ -29,9 +28,12 @@ ret, static_image = static_cap.read()
 # Different coordinates used for each video
 bboxes = []
 player_images = []
+f = open("playercoordinates.txt", "w")
 
 for i in range(0, len(trackerList)):
-    bbox = cv.selectROI(img, False)
+    player = i + 1
+    print('Select player ' + str(player))
+    bbox = cv.selectROI('Select Players', img, False)
     bboxes.append(bbox)
     drawBox(img, bbox)
 
@@ -43,6 +45,7 @@ for i in range(0, len(trackerList)):
 
     trackerList[i].init(img, bboxes[i])
     print('bbox index: ', bboxes[i])
+    cv.destroyWindow('Select Players')
 
 
 # Loop through video
@@ -58,7 +61,7 @@ while True:
         if (bboxes[i] == 0 or trackerList[i] == 0):
             print("PLAYER LOST!!!!!!!!")
             cv.imshow('Lost Player', player_images[i])
-            bbox = cv.selectROI(img, False)
+            bbox = cv.selectROI('Reselect Lost Player', img, False)
             print('BBOX: ', bbox)
 
             # If no coordinates were selected
@@ -71,6 +74,8 @@ while True:
                 new_tracker = cv.legacy.TrackerCSRT_create()
                 trackerList[i] = new_tracker
                 trackerList[i].init(img, bboxes[i])
+            cv.destroyWindow('Reselect Lost Player')
+            cv.destroyWindow('Lost Player')
 
         else:
             # Update box
@@ -87,10 +92,10 @@ while True:
         
         print('bboxes: ', bboxes)
         f.write(str(bboxes) + "\n")
-    out.write(img)
+    #out.write(img)
 
 cap.release()
 static_cap.release()
-out.release()
+#out.release()
 f.close()
 cv.destroyAllWindows()
