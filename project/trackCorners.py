@@ -34,6 +34,8 @@ for j in range(4):
     trackerList[j].init(img, bboxes[j])
     cv2.destroyWindow('Select Corner')
 
+print("Currently tracking...")
+
 # Loop through video
 while True:
     success, img = cap.read()
