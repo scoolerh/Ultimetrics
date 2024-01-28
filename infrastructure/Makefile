@@ -12,6 +12,11 @@ help:
 	@echo "To get started analyzing film, please add your video in the form of an MP4 file to this folder, and name it 'frisbee.mp4'."
 	@echo "Then, you can type 'make run' into the command line'."
 
+# gets everything necessary downloaded, assume pip is downloaded
+setup:
+	@pip3 install opencv-python
+	@pip3 install opencv-contrib-python
+
 run: coordinates markplayers math animation present
 
 # have user enter coordinates of field
