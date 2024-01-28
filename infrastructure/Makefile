@@ -9,6 +9,7 @@
 # help, instructions
 help: 
 	@echo "Welcome to Ultimetrics!"
+	@echo "First, make sure to type 'make setup' in the command line to download all necessary software."
 	@echo "To get started analyzing film, please add your video in the form of an MP4 file to this folder, and name it 'frisbee.mp4'."
 	@echo "Then, you can type 'make run' into the command line'."
 
