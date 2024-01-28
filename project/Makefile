@@ -23,7 +23,7 @@ run: coordinates markplayers math animation present
 
 # have user enter coordinates of field
 coordinates: 
-	@python3 inputCoordinates.py
+	@python3 trackCorners.py
 	@echo "The field coordinates are: "
 	@cat corners.txt
 	@echo
