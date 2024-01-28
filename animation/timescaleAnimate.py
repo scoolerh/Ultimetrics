@@ -23,6 +23,11 @@ plt.rcParams['animation.ffmpeg_path'] ='./animation.mp4'
 #get our csv reader ready
 import csv
 #set up csvList
+
+#NOTE: file format
+#file that we're writing in -- format is one column of frame numbers (1, 2, 3, 4, 5), and then 
+#pairs of columns representing the number of players. See smoothData1.csv for an example. The first 
+#column in a player pair is the x coordinate, the second is the y coordinate. 
 playerData = open("./smoothData2.csv")
 playerDataReader = csv.reader(playerData)
 #clear header, store for debugging
