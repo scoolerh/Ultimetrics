@@ -1,5 +1,5 @@
 import yolov5
-import cv2 as cv
+import csv
 
 def detect(image):
     # load model
@@ -36,4 +36,7 @@ def detect(image):
 
     categories = predictions[:, 5]
 
-    return bboxes
+
+    with open('player_detection.csv', 'w', newline='') as csvfile:
+        csvwriter = csv.writer(csvfile)
+        csvwriter.writerows(bboxes)
