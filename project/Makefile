@@ -20,20 +20,16 @@ setup:
 # run whole program
 run: coordinates markplayers math animation present
 
-# have user enter coordinates of field
+# have user mark the corners of the field
 coordinates: 
+	@echo "Please mark a box around each corner in the order indicated."
 	@python3 trackCorners.py
-	@echo "The field coordinates are: "
-	@cat corners.txt
-	@echo
 
 # have user mark players
 markplayers: 
 	@echo "Please mark a box around each player, as well as the disc."
 	@echo "Note: this program works slowly, so outline a player, press enter, and then wait for the box to change color before marking the next player."
 	@python3 tracking.py
-	@cat playercoordinates.txt
-	@echo
 
 # send output csv to math to get converted 
 math: 

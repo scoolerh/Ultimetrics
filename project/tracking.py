@@ -41,6 +41,8 @@ for i in range(0, len(trackerList)):
     trackerList[i].init(img, bboxes[i])
     cv.destroyWindow('Select Players')
 
+print("Currently tracking the players...")
+
 # Loop through video
 while True:
     success, img = cap.read()
@@ -74,7 +76,17 @@ while True:
             else:
                 bboxes[i] = -1
         
-        f.write(str(bboxes) + "\n")
+    positions = []
+    for box in bboxes: 
+        x = int(box[0])
+        y = int(box[1])
+        w = int(box[2])
+        xcord = x + (w/2)
+        center = (xcord, y)
+        positions.append(center)
+    f.write(str(positions) + "\n")
+
+print("Player tracking complete!")
 
 cap.release()
 static_cap.release()

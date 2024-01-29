@@ -34,7 +34,7 @@ for j in range(4):
     trackerList[j].init(img, bboxes[j])
     cv2.destroyWindow('Select Corner')
 
-print("Currently tracking...")
+print("Currently tracking the corners...")
 
 # Loop through video
 while True:
@@ -70,7 +70,15 @@ while True:
             else:
                 bboxes[i] = -1
 
-        f.write(str(bboxes) + "\n")
+    centers = []
+    for box in bboxes: 
+        xcord = box[0] + (box[2]/2)
+        ycord = box[1] + (box[3]/2)
+        center = (xcord, ycord)
+        centers.append(center)
+    f.write(str(centers) + "\n")
+
+print("Corner tracking complete!")
 
 cap.release()
 f.close()
