@@ -65,14 +65,10 @@ while True:
         else:
             # Update box
             success, bboxes[i] = trackerList[i].update(img)
-
-            # Update successful
             if success:
                 drawBox(img, bboxes[i])
-                
-            # Unsuccessful
             else:
-                bboxes[i] = 0
+                bboxes[i] = -1
 
         f.write(str(bboxes) + "\n")
 
