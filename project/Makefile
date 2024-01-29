@@ -33,7 +33,7 @@ markplayers:
 
 # send output csv to math to get converted 
 math: 
-	@echo "Math phase."
+	@python3 mathconversion.py
 
 # send to animation to be animated 
 animation: 
