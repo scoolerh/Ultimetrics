@@ -25,7 +25,7 @@ ret, static_image = static_cap.read()
 # Different coordinates used for each video
 bboxes = []
 player_images = []
-f = open("playercoordinates.txt", "w")
+f = open("results/playercoordinates.txt", "w")
 
 for i in range(0, len(trackerList)):
     player = i + 1

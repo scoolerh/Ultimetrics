@@ -10,7 +10,7 @@ def drawBox(img, bbox):
     b = random.randint(0,256)
     cv2.rectangle (img,(x,y), ((x+w), (y+h)), (r,g,b), 3,1)
 
-f = open("corners.txt", "w")
+f = open("results/corners.txt", "w")
 
 # Load the first frame of the video
 cap = cv2.VideoCapture('frisbee.mp4')

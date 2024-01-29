@@ -25,10 +25,10 @@ dst = np.float32([
     [2520,30]
 ])
 M = cv2.getPerspectiveTransform(src,dst)
-oldcornerfile = open("corners.txt", "r")
-newcornerfile = open("mathedCorners.txt", "w")
-oldplayerfile = open("playercoordinates.txt", "r")
-newplayerfile = open("mathedPlayers.txt", "w")
+oldcornerfile = open("results/corners.txt", "r")
+newcornerfile = open("results/mathedCorners.txt", "w")
+oldplayerfile = open("results/playercoordinates.txt", "r")
+newplayerfile = open("results/mathedPlayers.txt", "w")
 
 print("Beginning corner coordinate math...")
 for line in oldcornerfile: 
