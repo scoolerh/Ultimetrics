@@ -1,7 +1,4 @@
-#run fourpointsmath.py for each frame and each player 
-#want a fun loading message/graphic between phases
 #animation run 
-#instead put in the bottom center coordinate for each player (tracking by feet)
 #perhaps try saving stills instead of videos 
 #deal with lost tracking
 
@@ -18,7 +15,7 @@ setup:
 	@pip3 install opencv-contrib-python
 
 # run whole program
-run: coordinates markplayers math animation present
+run: coordinates players math animation
 
 # have user mark the corners of the field
 coordinates: 
@@ -26,7 +23,7 @@ coordinates:
 	@python3 trackCorners.py
 
 # have user mark players
-markplayers: 
+players: 
 	@echo "Please mark a box around each player, as well as the disc."
 	@echo "Note: this program works slowly, so outline a player, press enter, and then wait for the box to change color before marking the next player."
 	@python3 tracking.py
@@ -38,7 +35,3 @@ math:
 # send to animation to be animated 
 animation: 
 	@echo "Animation phase."
-
-# present animation to user 
-present: 
-	@echo "Presentation phase."
