@@ -3,8 +3,8 @@ import cv2
 import numpy as np
 import random
 
-def drawBox(img, bbox):
-    x, y, w, h = int(bbox[0]), int(bbox[1]), int(bbox[2]), int(bbox[3])
+def drawBox(img, cornerBbox):
+    x, y, w, h = int(cornerBbox[0]), int(cornerBbox[1]), int(cornerBbox[2]), int(cornerBbox[3])
     r = random.randint(0,256)
     g = random.randint(0,256)
     b = random.randint(0,256)
@@ -16,23 +16,23 @@ f = open("corners.txt", "w")
 cap = cv2.VideoCapture('frisbee.mp4')
 ret, img = cap.read()
 
-trackerList = []
-bboxes = []
+cornerTrackerList = []
+cornerBboxes = []
 corner = ["top left", "top right", "bottom right", "bottom left"]
 
 #Instantiate trackers
 for i in range(4): 
-    tracker = cv2.legacy.TrackerCSRT_create()
-    trackerList.append(tracker)
+    tracker = cv2.TrackerCSRT_create()
+    cornerTrackerList.append(tracker)
 
 #Select corners 
 for j in range(4):
     print('Draw a box around the ' + corner[j] + ' corner.')
-    bbox = cv2.selectROI('Select Corner', img, False)
-    bboxes.append(bbox)
-    drawBox(img, bbox)
-    trackerList[j].init(img, bboxes[j])
-    cv2.destroyWindow('Select Corner')
+    cornerBbox = cv2.selectROI('Select the ' + corner[j] + ' corner', img, False)
+    cornerBboxes.append(cornerBbox)
+    drawBox(img, cornerBbox)
+    cornerTrackerList[j].init(img, cornerBboxes[j])
+    cv2.destroyWindow('Select the ' + corner[j] + ' corner')
 
 # Loop through video
 while True:
@@ -41,38 +41,45 @@ while True:
         break
 
     # Loop through each bounding box
-    for i in range(0, len(bboxes)):
+    for i in range(0, len(cornerBboxes)):
 
         # If tracking was lost, select new ROI of player
-        if (bboxes[i] == 0 or trackerList[i] == 0):
+        if (cornerBboxes[i] == 0 or cornerTrackerList[i] == 0):
             print("Tracking of the " + corner[i] + " corner was lost!")
-            bbox = cv2.selectROI('Reselect Lost Corner', img, False)
+            cornerBbox = cv2.selectROI('Reselect Lost Corner', img, False)
 
             # If no coordinates were selected
-            if bbox == (0, 0, 0, 0):
+            if cornerBbox == (0, 0, 0, 0):
                 continue
 
-            # Insert new bbox into list and continue tracking
+            # Insert new cornerBbox into list and continue tracking
             else:
-                bboxes[i] = bbox
+                cornerBboxes[i] = cornerBbox
                 new_tracker = cv2.legacy.TrackerCSRT_create()
-                trackerList[i] = new_tracker
-                trackerList[i].init(img, bboxes[i])
+                cornerTrackerList[i] = new_tracker
+                cornerTrackerList[i].init(img, cornerBboxes[i])
             cv2.destroyWindow('Reselect Lost Corner')
 
         else:
             # Update box
-            success, bboxes[i] = trackerList[i].update(img)
+            success, cornerBboxes[i] = cornerTrackerList[i].update(img)
 
             # Update successful
             if success:
-                drawBox(img, bboxes[i])
+                drawBox(img, cornerBboxes[i])
                 
             # Unsuccessful
             else:
-                bboxes[i] = 0
+                cornerBboxes[i] = 0
 
-        f.write(str(bboxes) + "\n")
+        f.write(str(cornerBboxes) + "\n")
+    
+    # grab every 10th frame to speed up testing
+    for i in range(9):
+        success, img = cap.read()
+        if not success:
+            break
+    
 
 cap.release()
 f.close()

@@ -11,6 +11,8 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import matplotlib.colors as clrs
 import matplotlib.animation as animation
+from IPython import display 
+import os
 #from matplotlib.animation import FuncAnimation
 
 # import ffmpeg
@@ -25,11 +27,17 @@ import csv
 #set up csvList
 
 #NOTE: file format
+# input 
 #file that we're writing in -- format is one column of frame numbers (1, 2, 3, 4, 5), and then 
 #pairs of columns representing the number of players. See smoothData1.csv for an example. The first 
 #column in a player pair is the x coordinate, the second is the y coordinate. 
+
+numFrames = 0
+with open("./playercoordinates.csv") as f:
+    numFrames = sum(1 for line in f)
 playerData = open("./playercoordinates.csv")
 playerDataReader = csv.reader(playerData)
+
 #clear header, store for debugging
 header = next(playerDataReader)
 #the number of players is (1/2)(x-1), where x is the length of the header
@@ -46,6 +54,9 @@ ydatas = []
 for i in range(numPlayers) :
     xdatas.append(0)
     ydatas.append(0)
+
+# will be updated as we go thorugh csv
+
 
 
 
@@ -103,8 +114,8 @@ def update(frame):
         #update each player
         for i in range (1, len(header), 2) :
             playerVal = int((.5) * (i - 1))
-            xdatas[playerVal] = (float(nextData[i]) / 10)
-            ydatas[playerVal] = (float(nextData[i+1]) / 10)
+            xdatas[playerVal] = (float(nextData[i+1]))
+            ydatas[playerVal] = (float(nextData[i]))
             playerList[playerVal].set_data(xdatas[playerVal], ydatas[playerVal])
 
 
@@ -116,13 +127,41 @@ def update(frame):
 #debugging
 #plt.show()
 
-anim = animation.FuncAnimation(fig, update, frames=range(1,100), repeat=False, interval=100 )
+anim = animation.FuncAnimation(fig, update, frames=range(1,numFrames), repeat=False, interval=100)
 
 plt.show()
 ##animation##
-FFwriter = animation.FFMpegWriter()
-output = open('./animation.mp4', 'w')
-anim.save(output, writer = FFwriter)
+# FFwriter = animation.FFMpegWriter(fps=10)
+# output = open('./animation.mp4', 'w')
+# anim.save('./animation.mp4', writer = FFwriter)
+
+# f = "animation.gif"
+# writergif = animation.PillowWriter(fps=30) 
+# anim.save(f, writer=writergif)
+
+# writervideo = animation.FFMpegWriter(fps=5) 
+print("saving video")
+# anim.save('animationVideo.mp4', writer=writervideo) 
+# plt.close() 
+# video = anim.to_html5_video() 
+  
+# # embedding for the video 
+
+# saving to m4 using ffmpeg writer 
+# writervideo = animation.FFMpegWriter(fps=60) 
+# output = open('./animation.mp4', 'w')
+# anim.save(os.getcwd() + "animation.mp4", writer=writervideo) 
+# output.close()
+# plt.close() 
+# html = display.HTML(video) 
+
+f = "animation.gif" 
+writergif = animation.PillowWriter(fps=30, codec='libx264', bitrate=2) 
+anim.save(f, writer=writergif)
+  
+plt.close() 
+
+
 
 
 

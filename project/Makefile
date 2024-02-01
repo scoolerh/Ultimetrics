@@ -19,31 +19,15 @@ setup:
 	@pip3 install opencv-contrib-python
 
 # run whole program
-run: coordinates markplayers math animation present
-
-# have user enter coordinates of field
-coordinates: 
-	@python3 trackCorners.py
-	@echo "The field coordinates are: "
-	@cat corners.txt
-	@echo
+run: fieldtracking animation
 
 # have user mark players
-markplayers: 
-	@echo "Please mark a box around each player, as well as the disc."
+fieldtracking: 
+	@echo "Please mark a box around each corner and each player"
 	@echo "Note: this program works slowly, so outline a player, press enter, and then wait for the box to change color before marking the next player."
 	@python3 tracking.py
-	@cat playercoordinates.txt
-	@echo
-
-# send output csv to math to get converted 
-math: 
-	@echo "Math phase."
 
 # send to animation to be animated 
 animation: 
 	@echo "Animation phase."
-
-# present animation to user 
-present: 
-	@echo "Presentation phase."
+	@python3 timescaleAnimate.py
