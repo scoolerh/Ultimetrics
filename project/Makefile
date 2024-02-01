@@ -15,10 +15,10 @@ setup:
 	@pip3 install opencv-contrib-python
 
 # run whole program
-run: coordinates players math animation
+run: corners players math animation
 
 # have user mark the corners of the field
-coordinates: 
+corners: 
 	@echo "Please mark a box around each corner in the order indicated."
 	@python3 trackCorners.py
 
