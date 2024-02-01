@@ -10,7 +10,7 @@ def drawBox(img, cornerBbox):
     b = random.randint(0,256)
     cv2.rectangle (img,(x,y), ((x+w), (y+h)), (r,g,b), 3,1)
 
-f = open("corners.txt", "w")
+f = open("results/corners.txt", "w")
 
 # Load the first frame of the video
 cap = cv2.VideoCapture('frisbee.mp4')
@@ -33,6 +33,8 @@ for j in range(4):
     drawBox(img, cornerBbox)
     cornerTrackerList[j].init(img, cornerBboxes[j])
     cv2.destroyWindow('Select the ' + corner[j] + ' corner')
+
+print("Currently tracking the corners...")
 
 # Loop through video
 while True:

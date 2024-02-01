@@ -1,8 +1,4 @@
-#put trackers on cones to get coordinates at every frame and put those into a txt file 
-#run fourpointsmath.py for each frame and each player 
-#want a fun loading message/graphic between phases
 #animation run 
-#instead put in the bottom center coordinate for each player (tracking by feet)
 #perhaps try saving stills instead of videos 
 #deal with lost tracking
 
