@@ -1,6 +1,3 @@
-#animation run 
-#perhaps try saving stills instead of videos 
-#deal with lost tracking
 
 # help, instructions
 help: 
@@ -15,7 +12,7 @@ setup:
 	@pip3 install opencv-python
 	@pip3 install opencv-contrib-python
 
-# run whole program
+# run whole program 
 run: fieldtracking animation
 
 # have user mark players
