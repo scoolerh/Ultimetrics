@@ -29,12 +29,15 @@ import csv
 #pairs of columns representing the number of players. See smoothData1.csv for an example. The first 
 #column in a player pair is the x coordinate, the second is the y coordinate. 
 playerData = open("./playercoordinates.csv")
+#playerData = open("./smoothData2.csv")
 playerDataReader = csv.reader(playerData)
 #clear header, store for debugging
 header = next(playerDataReader)
 #the number of players is (1/2)(x-1), where x is the length of the header
-numPlayers = int((.5)*(len(header) -1))
+numPlayers = int((.5)*(len(header)))
 print("num players = " + str(numPlayers))
+#keep in mind that the first player is actually the disc
+
 #debug
 #print(numPlayers)
 #numPlayers is working
@@ -46,6 +49,10 @@ ydatas = []
 for i in range(numPlayers) :
     xdatas.append(0)
     ydatas.append(0)
+
+#debugging
+print(len(xdatas))
+print(len(ydatas))
 
 
 
@@ -72,8 +79,11 @@ def generate_field() :
     #at this point, the field shows up, working
 
     #creating scatter plots for the players? Maybe something we want to do
+    #add the disc
     ax.scatter([], [], c= 'blue', label = 'Cutrules', zorder=2)
     ax.scatter([], [], c= 'red', label = 'Losing team', zorder=2)
+    ax.scatter([], [], c= 'purple', label = 'Disc', zorder=2)
+
     # ax.scatter([], [], c='white' , label = 'Disc', zorder=2)
     #legend creation not working
     ax.legend(loc='upper right')
@@ -91,7 +101,9 @@ fig, ax = generate_field()
 
 #we want a line for each player, marked as a red o
 playerList = []
-for i in range(numPlayers) :
+ln, = ax.plot([], [], color=('purple'), marker='o')
+playerList.append(ln)
+for i in range(1, numPlayers) :
     ln, = ax.plot([], [], color=(1.0,0.0,0.0), marker='o')
     playerList.append(ln)
 
@@ -100,9 +112,18 @@ def update(frame):
     nextData = next(playerDataReader)
     
     if (nextData) :
+        
         #update each player
-        for i in range (1, len(header), 2) :
-            playerVal = int((.5) * (i - 1))
+        #the first set of columns and rows is the disc
+        #we will just call the disc "playerVal 1", but it will reference the disc
+        for i in range (0, 2) : 
+            discVal = 0
+            xdatas[discVal] = (float(nextData[i]) / 10)
+            ydatas[discVal] = (float(nextData[i+1]) / 10)
+            playerList[discVal].set_data(xdatas[discVal], ydatas[discVal])
+        for i in range (2, len(header), 2) :
+            playerVal = int((.5) * i)
+        
             xdatas[playerVal] = (float(nextData[i]) / 10)
             ydatas[playerVal] = (float(nextData[i+1]) / 10)
             playerList[playerVal].set_data(xdatas[playerVal], ydatas[playerVal])
