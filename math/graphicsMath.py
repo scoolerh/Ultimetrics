@@ -247,17 +247,17 @@ invV = inv(V)
 # PERSPECTIVE PROJECTION MATRIX INFORMATION
 
 # Camera information
-fov = math.radians(83)
+fov = math.radians(82)
 # fovy = fov/2
 
 # Test I ran said that Focal = 1, Ratio = 2, Yaw = 315, Pitch = 45 was the best combo
-focal = 10.0
+focal = 15
 # focal = 1000.0
 
 
 # far = -focal * ratio
 # near = -focal / ratio
-far = -1000.0
+far = 1.0
 near = -1.0
 
 top = focal*tan(fov * 0.5)
@@ -265,7 +265,7 @@ bottom = -top
 
 
 # right view of camera
-right = top * 16/9
+right = top * 1/16
 # left view of camera
 left = -right
 
@@ -390,11 +390,17 @@ pitchMatrix = np.array([
     [0, sin(pitch), cos(pitch)],
 ])
 
-R_yp = yawMatrix @ pitchMatrix
-R_py = pitchMatrix @ yawMatrix
+rollMatrix = np.array([
+    [cos(roll), 0, sin(roll)],
+    [0, 1, 0],
+    [-sin(roll), 0, cos(roll)],
+])
 
-currentNegZ = R_yp @ defaultNegZ
-currentY = R_yp @ defaultY
+# R_yp = yawMatrix @ pitchMatrix
+# R_py = pitchMatrix @ yawMatrix
+
+currentNegZ = yawMatrix @ pitchMatrix @ defaultNegZ
+currentY = yawMatrix @ pitchMatrix @ defaultY
 
 
 def basisRotation(stdY, stdNegZ, inputY, inputNegZ):
@@ -418,10 +424,13 @@ def basisRotation(stdY, stdNegZ, inputY, inputNegZ):
     print(matrix4d)
     return matrix4d
 
+currentNegZ = yawMatrix @ pitchMatrix @ defaultNegZ
+currentY = yawMatrix @ pitchMatrix @ defaultY
+
 R = basisRotation(stdY, stdNegZ, currentY, currentNegZ)
 
-currentNegZ = R_py @ defaultNegZ
-currentY = R_py @ defaultY
+currentNegZ = pitchMatrix @ yawMatrix @ defaultNegZ
+currentY = pitchMatrix @ yawMatrix @ defaultY
 
 R2 = basisRotation(stdY, stdNegZ, currentY, currentNegZ)
 
@@ -446,18 +455,18 @@ def test_function4():
     results = []
     # Basis Rotation 1 (pitch then yaw)
     R = basisRotation(stdY, stdNegZ, currentY, currentNegZ)
-    testName = "basisRotation1"
+    testName = "basisRotation1 pitch then yaw"
     results.append(matrix_test(R, P, testName, worldCoords1, worldCoords2, worldCoords3))
 
     # Basis Rotation 2 (yaw then p)
-    R = R2
-    testName = "basisRotation2"
-    results.append(matrix_test(R, P, testName, worldCoords1, worldCoords2, worldCoords3))
+    R2
+    testName = "basisRotation2 yaw then pitch"
+    results.append(matrix_test(R2, P, testName, worldCoords1, worldCoords2, worldCoords3))
 
 
     print(results)
-    print(min(results))
-    print(np.argmin(results))
+    # print(min(results))
+    # print(np.argmin(results))
 
 
 
