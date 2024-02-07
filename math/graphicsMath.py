@@ -120,24 +120,30 @@ def matrix_test(R, P, testName, worldCoords1, worldCoords2, worldCoords3):
         predictedScreenCoords2 = homogeneous_division(V @ P @ invR @ invT @ worldCoords2)  # Predicted pixel data for Top Right Corner
         predictedScreenCoords3 = homogeneous_division(V @ P @ invR @ invT @ worldCoords3)  # Predicted pixel data for Yellow Corner
 
+        invP = inv(P)
+
+        predictedScreenCoords1 = homogeneous_division(V @ P @ R @ invT @ worldCoords1)  # Predicted pixel data for Top Left Corner
+        predictedScreenCoords2 = homogeneous_division(V @ P @ R @ invT @ worldCoords2)  # Predicted pixel data for Top Right Corner
+        predictedScreenCoords3 = homogeneous_division(V @ P @ R @ invT @ worldCoords3)  # Predicted pixel data for Yellow Corner
+
         xDiffLeft, yDiffLeft = pixel_diff(predictedScreenCoords1, topLeftTruePixels)
         xDiffRight, yDiffRight = pixel_diff(predictedScreenCoords2, topRightTruePixels)
         xDiffYellow, yDiffYellow = pixel_diff(predictedScreenCoords3, yellowCornerTruePixels)
 
         total_diff = abs(xDiffLeft) + abs(yDiffLeft) + abs(xDiffRight) + abs(yDiffRight) + abs(xDiffYellow) + abs(yDiffYellow)
 
-        # print("\nTesting: " + testName + "\n")
-        # print("Top Left Corner: \n")
-        # print("Predicted X Pixel Diff: " + str(xDiffLeft) + " Value: " + str(predictedScreenCoords1[0]) + "\n")
-        # print("Predicted Y Pixel Diff: " + str(yDiffLeft) + " Value: " + str(predictedScreenCoords1[1]) + "\n")
-        # print("Top Right Corner: \n")
-        # print("Predicted X Pixel Diff: " + str(xDiffRight) + " Value: " + str(predictedScreenCoords2[0]) + "\n")
-        # print("Predicted Y Pixel Diff: " + str(yDiffRight) + " Value: " + str(predictedScreenCoords2[1]) + "\n")
-        # print("Yellow Corner: \n")
-        # print("Predicted X Pixel Diff: " + str(xDiffYellow) + " Value: " + str(predictedScreenCoords3[0]) + "\n")
-        # print("Predicted Y Pixel Diff: " + str(yDiffYellow) + " Value: " + str(predictedScreenCoords3[1]) + "\n")
-        # print("\nTotal Sum of Differences: " + str(total_diff))
-        # print("\n ------------------------------------------- \n")
+        print("\nTesting: " + testName + "\n")
+        print("Top Left Corner: \n")
+        print("Predicted X Pixel Diff: " + str(xDiffLeft) + " Value: " + str(predictedScreenCoords1[0]) + "\n")
+        print("Predicted Y Pixel Diff: " + str(yDiffLeft) + " Value: " + str(predictedScreenCoords1[1]) + "\n")
+        print("Top Right Corner: \n")
+        print("Predicted X Pixel Diff: " + str(xDiffRight) + " Value: " + str(predictedScreenCoords2[0]) + "\n")
+        print("Predicted Y Pixel Diff: " + str(yDiffRight) + " Value: " + str(predictedScreenCoords2[1]) + "\n")
+        print("Yellow Corner: \n")
+        print("Predicted X Pixel Diff: " + str(xDiffYellow) + " Value: " + str(predictedScreenCoords3[0]) + "\n")
+        print("Predicted Y Pixel Diff: " + str(yDiffYellow) + " Value: " + str(predictedScreenCoords3[1]) + "\n")
+        print("\nTotal Sum of Differences: " + str(total_diff))
+        print("\n ------------------------------------------- \n")
 
         return max([abs(xDiffLeft), abs(yDiffLeft), abs(xDiffRight), abs(yDiffRight), abs(xDiffYellow), abs(yDiffYellow)])
         # return total_diff
