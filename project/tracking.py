@@ -45,7 +45,7 @@ def randomColor():
     r = random.randint(0,255)
     g = random.randint(0,255)
     b = random.randint(0,255)
-    while (g>100 and g>(r*2) and g>(b*2)):
+    while (g>100 or g>(r*2) or g>(b*2)):
         g = random.randint(0,255)
     return (r,g,b)
 

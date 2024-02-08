@@ -11,16 +11,11 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import matplotlib.colors as clrs
 import matplotlib.animation as animation
-from IPython import display 
 import os
 #from matplotlib.animation import FuncAnimation
 
-import ffmpeg
+# import ffmpeg
 plt.rcParams['animation.ffmpeg_path'] ='./animation.mp4'
-
-
-
-
 
 #get our csv reader ready
 import csv
@@ -59,8 +54,6 @@ for i in range(numPlayers) :
 # will be updated as we go thorugh csv
 
 
-
-
 #create the frisbee field - 110 x 40
 def generate_field() :
     #pulled from the code. I understand what all of the variables do except for zorder
@@ -89,8 +82,6 @@ def generate_field() :
     # ax.scatter([], [], c='white' , label = 'Disc', zorder=2)
     #legend creation not working
     ax.legend(loc='upper right')
-
-    
 
     #we want to return the figure and axis data
     return fig, ax
