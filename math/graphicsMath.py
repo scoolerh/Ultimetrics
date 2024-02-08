@@ -120,6 +120,12 @@ def matrix_test(R, P, testName, worldCoords1, worldCoords2, worldCoords3):
         predictedScreenCoords2 = homogeneous_division(V @ P @ invR @ invT @ worldCoords2)  # Predicted pixel data for Top Right Corner
         predictedScreenCoords3 = homogeneous_division(V @ P @ invR @ invT @ worldCoords3)  # Predicted pixel data for Yellow Corner
 
+        invP = inv(P)
+
+        predictedScreenCoords1 = homogeneous_division(V @ P @ R @ invT @ worldCoords1)  # Predicted pixel data for Top Left Corner
+        predictedScreenCoords2 = homogeneous_division(V @ P @ R @ invT @ worldCoords2)  # Predicted pixel data for Top Right Corner
+        predictedScreenCoords3 = homogeneous_division(V @ P @ R @ invT @ worldCoords3)  # Predicted pixel data for Yellow Corner
+
         xDiffLeft, yDiffLeft = pixel_diff(predictedScreenCoords1, topLeftTruePixels)
         xDiffRight, yDiffRight = pixel_diff(predictedScreenCoords2, topRightTruePixels)
         xDiffYellow, yDiffYellow = pixel_diff(predictedScreenCoords3, yellowCornerTruePixels)
