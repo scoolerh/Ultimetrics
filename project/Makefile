@@ -1,3 +1,12 @@
+# match ids of redetected players - ethan and conor
+# smoothing player trajectories - jack 
+# call HITL if not 14 players detected at the beginning of the video - hannah (label a thing on video with a single click, very reusable code)
+# take color average at the beginning for each player, store in array and check when lost what is closest - 
+# use color average to determine teams - hannah and ethan 
+# figure out how to avoid dependency problems - not priority (docker, server, documentation)
+# change color of boxes to enhance contrast, add numbers to each box - hannah and doug
+# test yolov5 model - doug
+# test on different videos, hard code cones for debugging 
 
 # help, instructions
 help: 
@@ -8,9 +17,11 @@ help:
 
 # gets everything necessary downloaded, assume pip is downloaded
 # anything we need to install for animation? 
+# yolo5 
 setup:
 	@pip3 install opencv-python
 	@pip3 install opencv-contrib-python
+	@pip3 install yolov5
 
 # run whole program 
 run: fieldtracking animation
