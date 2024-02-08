@@ -17,8 +17,9 @@ help:
 
 # gets everything necessary downloaded, assume pip is downloaded
 setup:
-	@pip3 install opencv-python
-	@pip3 install opencv-contrib-python
+	@pip3 install yolov5
+	@pip3 uninstall opencv-contrib-python
+	@pip3 uninstall opencv-python
 	@pip3 install yolov5
 
 # run whole program 
