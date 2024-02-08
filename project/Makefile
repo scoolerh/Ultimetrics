@@ -1,8 +1,7 @@
 # match ids of redetected players - ethan and conor
 # smoothing player trajectories - jack 
 # call HITL if not 14 players detected at the beginning of the video - hannah (label a thing on video with a single click, very reusable code)
-# take color average at the beginning for each player, store in array and check when lost what is closest - 
-# use color average to determine teams - hannah and ethan 
+# color average does not help, they are all very close
 # figure out how to avoid dependency problems - not priority (docker, server, documentation)
 # change color of boxes to enhance contrast, add numbers to each box - hannah and doug
 # test yolov5 model - doug
@@ -27,8 +26,7 @@ run: fieldtracking animation
 
 # have user mark players
 fieldtracking: 
-	@echo "Please mark a box around each corner and each player"
-	@echo "Note: this program works slowly, so outline a player, press enter, and then wait for the box to change color before marking the next player."
+	@echo "Please mark a box around each corner."
 	@python3 tracking.py
 
 # send to animation to be animated 

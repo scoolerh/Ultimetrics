@@ -1,47 +1,34 @@
-#source : youtube video, animating NFL data using timescaleDB
-#import all needed modules (TODO: research each module a little)
 import configparser
-#a module to help us connect to timescale db
-# import psycopg2
-#to store the data in python, pandas (data frames)
 import pandas as pd
 import numpy as np
-#matplotlib - this is where we can actually visualize the data
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import matplotlib.colors as clrs
 import matplotlib.animation as animation
 import os
+import csv
 #from matplotlib.animation import FuncAnimation
-
 # import ffmpeg
+
 plt.rcParams['animation.ffmpeg_path'] ='./animation.mp4'
 
-#get our csv reader ready
-import csv
-#set up csvList
-
 #NOTE: file format
-# input 
 #file that we're writing in -- format is one column of frame numbers (1, 2, 3, 4, 5), and then 
-#pairs of columns representing the number of players. See smoothData1.csv for an example. The first 
+#pairs of columns representing the number of players. The first 
 #column in a player pair is the x coordinate, the second is the y coordinate. 
 
 numFrames = 0
 with open("./playercoordinates.csv") as f:
     numFrames = sum(1 for line in f)
 playerData = open("./playercoordinates.csv")
+playerColors = open("./playercolors.csv")
 playerDataReader = csv.reader(playerData)
+playerColorReader = csv.reader(playerColors)
 
-#clear header, store for debugging
 header = next(playerDataReader)
 #the number of players is (1/2)(x-1), where x is the length of the header
-# numPlayers = int((.5)*(len(header)))
-numPlayers = 14
-print("num players = " + str(numPlayers))
-#debug
-#print(numPlayers)
-#numPlayers is working
+numPlayers = int((.5)*(len(header)))
+#numPlayers = 14
 
 #initialize some global variables, we want lists of the x and y data
 playerVal = 0
@@ -50,17 +37,11 @@ ydatas = []
 for i in range(numPlayers) :
     xdatas.append(0)
     ydatas.append(0)
-
-# will be updated as we go thorugh csv
-
+# will be updated as we go through csv
 
 #create the frisbee field - 110 x 40
 def generate_field() :
-    #pulled from the code. I understand what all of the variables do except for zorder
-    #first coords pair is the upper left corner
-    field = patches.Rectangle((0, 0), 120.0, 40.0, linewidth=2,
-                            edgecolor='white', facecolor='green', zorder=0)
-    #set up display
+    field = patches.Rectangle((0, 0), 120.0, 40.0, linewidth=2, edgecolor='white', facecolor='green', zorder=0)
     #initialize figure and axis data
     fig, ax = plt.subplots(1, figsize=(11, 4))
     ax.add_patch(field)
@@ -70,32 +51,28 @@ def generate_field() :
     #add horizontal lines to give axis context
     ax.axhline(y=0.0, color="white",zorder=1)
     ax.axhline(y=40.0, color="white",zorder=1)
-    #turn off the axes
     plt.axis('off')
-    #debugging
-    #plt.show()
-    #at this point, the field shows up, working
 
     #creating scatter plots for the players? Maybe something we want to do
-    ax.scatter([], [], c= 'blue', label = 'Cutrules', zorder=2)
-    ax.scatter([], [], c= 'red', label = 'Losing team', zorder=2)
+    ax.scatter([], [], c= 'blue', label = 'Darkside', zorder=2)
+    ax.scatter([], [], c= 'red', label = 'Losing Team (The CUT)', zorder=2)
     # ax.scatter([], [], c='white' , label = 'Disc', zorder=2)
-    #legend creation not working
     ax.legend(loc='upper right')
 
-    #we want to return the figure and axis data
     return fig, ax
 
-
-
 # plot static graph
-
 fig, ax = generate_field()
+
+def rgb_to_hex(r, g, b):
+    return '#{:02x}{:02x}{:02x}'.format(r, g, b)
 
 #we want a line for each player, marked as a red o
 playerList = []
 for i in range(numPlayers) :
-    ln, = ax.plot([], [], color=(1.0,0.0,0.0), marker='o')
+    color = next(playerColorReader)
+    hex_color = rgb_to_hex(int(color[0]), int(color[1]), int(color[2]))
+    ln, = ax.plot([], [], color=hex_color, marker='o')
     playerList.append(ln)
 
 #how to plot a single moment
@@ -116,8 +93,6 @@ def update(frame):
     #     ydata = (float(nextData[2]) / 10)
     # ln.set_data(xdata, ydata)
     return playerList,
-#debugging
-#plt.show()
 
 anim = animation.FuncAnimation(fig, update, frames=range(1,numFrames), repeat=False, interval=100)
 
@@ -132,7 +107,7 @@ plt.show()
 # anim.save(f, writer=writergif)
 
 # writervideo = animation.FFMpegWriter(fps=5) 
-print("saving video")
+#print("saving video")
 # anim.save('animationVideo.mp4', writer=writervideo) 
 # plt.close() 
 # video = anim.to_html5_video() 
@@ -146,17 +121,9 @@ print("saving video")
 # output.close()
 # plt.close() 
 # html = display.HTML(video) 
-
+""" 
 f = "animation.gif" 
 writergif = animation.PillowWriter(fps=30, codec='libx264', bitrate=2) 
-anim.save(f, writer=writergif)
+anim.save(f, writer=writergif) """
 
 plt.close()
-
-
-
-
-
-
-#notes
-#don't think/worry about SQL

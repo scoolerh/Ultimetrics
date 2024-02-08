@@ -14,6 +14,8 @@ ret, img = cap.read()
 # set up CSV file to write into 
 f = open("playercoordinates.csv", "w", newline='')
 csvWriter = csv.writer(f, delimiter=',')
+colors = open("playercolors.csv", "w", newline='')
+colorWriter = csv.writer(colors, delimiter=',')
 
 # ================= MATH CONVERSION SETUP ==========================================
 
@@ -36,19 +38,16 @@ def screen2fieldCoordinates(x,y, transformation_matrix):
 
 # ===================== INITIAL PLAYER/CORNER LOCATION =============================
 
-# produce a random NOT GREEN color 
+# produce a random color with certain restrictions to make it look better 
 def randomColor():
     r = random.randint(0,255)
     g = random.randint(0,255)
     b = random.randint(0,255)
-    while (g>100 or g>(r*2) or g>(b*2)):
+    while (((g >= 1.75*r) and (g >= 1.75*b)) or (r%5 != 0 or b%5 != 0 or g%5 != 0)):
+        r = random.randint(0,255)
         g = random.randint(0,255)
+        b = random.randint(0,255)
     return (r,g,b)
-
-# draws a box around a selected area in an img
-def drawBox(img, bbox):
-    x, y, w, h = int(bbox[0]), int(bbox[1]), int(bbox[2]), int(bbox[3])
-    cv.rectangle (img,(x,y), ((x+w), (y+h)), randomColor(), 3,1)
 
 # instantiate corner trackers
 cornerTrackerList = []
@@ -61,18 +60,18 @@ for i in range(4):
 cornerMultiTracker = cv.legacy.MultiTracker_create()
 playerMultiTracker = cv.legacy.MultiTracker_create()
 
+# lists for storing information about players and corners 
 playerBboxes = []
 playerBoxColors = []
-averagePixelColors = []
-
 cornerBboxes = []
 cornerColors = []
 
 # have user select the corners 
-for j in range(4):
-    print('Draw a box around the ' + cornerNames[j] + ' corner.')
-    cornerBbox = cv.selectROI('Corner MultiTracker', img, False)
-    cornerBboxes.append(cornerBbox)
+# for j in range(4):
+#     print('Draw a box around the ' + cornerNames[j] + ' corner.')
+#     cornerBbox = cv.selectROI('Corner MultiTracker', img, False)
+#     cornerBboxes.append(cornerBbox)
+cornerBboxes = [(1189, 676, 11, 15), (0, 1739, 26, 30), (3513, 1662, 27, 37), (2294, 676, 21, 17)]
 
 # initialize corner multiTracker
 for bbox in cornerBboxes:
@@ -80,7 +79,7 @@ for bbox in cornerBboxes:
     tracker = cv.legacy.TrackerCSRT_create()
     cornerMultiTracker.add(tracker, img, bbox)
 
-# recognizing corners for first frame
+# get corners to update the transformation matrix
 for i, cornerBox in enumerate(cornerBboxes):
     # get middle of box coordinate
     xCoord = (cornerBox[0]+(cornerBox[2]/2))
@@ -88,13 +87,11 @@ for i, cornerBox in enumerate(cornerBboxes):
     # update src matrix
     src[i][0] = xCoord
     src[i][1] = yCoord
-    # update transformation matrix
 M = cv.getPerspectiveTransform(src,dst)
 
 # have user select the players 
 def hitlSelection():
     while True:
-        # draw bounding boxes over players
         bbox = cv.selectROI('Player MultiTracker', img)
         playerBboxes.append(bbox)
         print("Press q to quit selecting boxes and start tracking")
@@ -124,23 +121,9 @@ playerBboxes = detectionSelection()
 for bbox in playerBboxes:
     playerBoxColors.append(randomColor())
     tracker = cv.legacy.TrackerCSRT_create()
-    startx = bbox[0]
-    starty = bbox[1]
-    endx = startx + bbox[2]
-    endy = starty - bbox[3]
-    blue = 0 
-    green = 0
-    red = 0
-    numPixels = 0
-    for x in range(startx, endx):
-        for y in range(endy, starty):
-            blue += img[y][x][0]
-            green += img[y][x][1]
-            red += img[y][x][2]
-            numPixels += 1
-    averageColor = ((red/numPixels),(green/numPixels),(blue/numPixels))
-    averagePixelColors.append(averageColor)
     playerMultiTracker.add(tracker, img, bbox)
+
+colorWriter.writerows(playerBoxColors)
 
 # ==================== PLAYER/CORNER TRACKING ======================================
 
