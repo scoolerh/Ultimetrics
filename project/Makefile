@@ -16,8 +16,6 @@ help:
 	@echo "Then, you can type 'make run' into the command line'."
 
 # gets everything necessary downloaded, assume pip is downloaded
-# anything we need to install for animation? 
-# yolo5 
 setup:
 	@pip3 install opencv-python
 	@pip3 install opencv-contrib-python
