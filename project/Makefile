@@ -33,5 +33,4 @@ fieldtracking:
 
 # send to animation to be animated 
 animation: 
-	@echo "Animation phase."
-	@python3 timescaleAnimate.py
+	@python3 animation.py
