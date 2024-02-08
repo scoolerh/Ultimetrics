@@ -9,11 +9,7 @@ import time
 
 # import video
 cap = cv.VideoCapture('frisbee.mp4')
-static_cap = cv.VideoCapture('frisbee.mp4')
 ret, img = cap.read()
-
-# to store the initial photo of each player, for when that player is lost 
-ret, static_image = static_cap.read()
 
 # set up CSV file to write into 
 f = open("playercoordinates.csv", "w", newline='')
@@ -66,8 +62,8 @@ cornerMultiTracker = cv.legacy.MultiTracker_create()
 playerMultiTracker = cv.legacy.MultiTracker_create()
 
 playerBboxes = []
-playerImages = []
-playerColors = []
+playerBoxColors = []
+averagePixelColors = []
 
 cornerBboxes = []
 cornerColors = []
@@ -123,20 +119,27 @@ def detectionSelection():
     newPlayerBboxes = detect(res)
     return newPlayerBboxes
     
-
-# user can decide whether to manually select or whether to use object detection
-# print("Would you like to use our object detection tool to try and find all of the players instead of inputing them all manually?")
-# detection = input("Enter 'Y' for yes and 'N' for no. ")
-# if (detection == "N" or detection == "n"): 
-#     hitlSelection()
-# else: 
-#     playerBboxes = detectionSelection()
-playerBboxes = detectionSelection()
-
 # add player trackers to the multitracker
+playerBboxes = detectionSelection()
 for bbox in playerBboxes:
-    playerColors.append(randomColor())
+    playerBoxColors.append(randomColor())
     tracker = cv.legacy.TrackerCSRT_create()
+    startx = bbox[0]
+    starty = bbox[1]
+    endx = startx + bbox[2]
+    endy = starty - bbox[3]
+    blue = 0 
+    green = 0
+    red = 0
+    numPixels = 0
+    for x in range(startx, endx):
+        for y in range(endy, starty):
+            blue += img[y][x][0]
+            green += img[y][x][1]
+            red += img[y][x][2]
+            numPixels += 1
+    averageColor = ((red/numPixels),(green/numPixels),(blue/numPixels))
+    averagePixelColors.append(averageColor)
     playerMultiTracker.add(tracker, img, bbox)
 
 # ==================== PLAYER/CORNER TRACKING ======================================
@@ -172,11 +175,11 @@ while cap.isOpened():
     if counter >= 30000:
         counter = 0
         playerBboxes = detectionSelection()
-        playerColors = []
+        playerBoxColors = []
         playerMultiTracker = cv.legacy.MultiTracker_create()
 
         for bbox in playerBboxes:
-            playerColors.append(randomColor())
+            playerBoxColors.append(randomColor())
             tracker = cv.legacy.TrackerCSRT_create()
             playerMultiTracker.add(tracker, img, bbox)
     else:
@@ -188,11 +191,11 @@ while cap.isOpened():
             print("Player was lost!")
             counter = 0
             playerBboxes = detectionSelection()
-            playerColors = []
+            playerBoxColors = []
             playerMultiTracker = cv.legacy.MultiTracker_create()
 
             for bbox in playerBboxes:
-                playerColors.append(randomColor())
+                playerBoxColors.append(randomColor())
                 tracker = cv.legacy.TrackerCSRT_create()
                 playerMultiTracker.add(tracker, img, bbox)
 
@@ -201,7 +204,7 @@ while cap.isOpened():
     for i, newPlayerBox in enumerate(playerBboxes):
         p1 = (int(newPlayerBox[0]), int(newPlayerBox[1]))
         p2 = (int(newPlayerBox[0] + newPlayerBox[2]), int(newPlayerBox[1] + newPlayerBox[3]))
-        cv.rectangle(img, p1, p2, playerColors[i], 2, 1)
+        cv.rectangle(img, p1, p2, playerBoxColors[i], 2, 1)
         if not newPlayerBox[0] > 0 :
             csvLine.append(-1)
             csvLine.append(-1)
@@ -232,6 +235,5 @@ while cap.isOpened():
 # ======================= CLEANUP ==================================================
 
 cap.release()
-static_cap.release()
 f.close()
 cv.destroyAllWindows()
