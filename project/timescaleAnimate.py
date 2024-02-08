@@ -15,7 +15,7 @@ from IPython import display
 import os
 #from matplotlib.animation import FuncAnimation
 
-# import ffmpeg
+import ffmpeg
 plt.rcParams['animation.ffmpeg_path'] ='./animation.mp4'
 
 
@@ -41,7 +41,8 @@ playerDataReader = csv.reader(playerData)
 #clear header, store for debugging
 header = next(playerDataReader)
 #the number of players is (1/2)(x-1), where x is the length of the header
-numPlayers = int((.5)*(len(header)))
+# numPlayers = int((.5)*(len(header)))
+numPlayers = 14
 print("num players = " + str(numPlayers))
 #debug
 #print(numPlayers)
@@ -112,7 +113,7 @@ def update(frame):
     
     if (nextData) :
         #update each player
-        for i in range (0, len(header)-1, 2) :
+        for i in range (0, len(nextData)-1, 2) :
             playerVal = int((.5) * (i - 1))
             xdatas[playerVal] = (float(nextData[i+1]))
             ydatas[playerVal] = (float(nextData[i]))
@@ -158,8 +159,8 @@ print("saving video")
 f = "animation.gif" 
 writergif = animation.PillowWriter(fps=30, codec='libx264', bitrate=2) 
 anim.save(f, writer=writergif)
-  
-plt.close() 
+
+plt.close()
 
 
 

@@ -3,6 +3,7 @@ import random
 import csv
 import numpy as np
 from detection import detect
+import time
 
 # ==================== INITIAL SETUP ===============================================
 
@@ -109,26 +110,25 @@ def detectionSelection():
     mask = np.zeros((height, width), dtype=np.uint8)
     points = np.array([src[0],src[1],src[2],src[3]])
     points = np.int32([points])
-    print(src)
-    print(points)
     cv.fillPoly(mask, points, (255))
 
     res = cv.bitwise_and(img,img,mask = mask)
 
-    rect = cv.boundingRect(points) # returns (x,y,w,h) of the rect
-    cropped = res[rect[1]: rect[1] + rect[3], rect[0]: rect[0] + rect[2]]
+    # rect = cv.boundingRect(points) # returns (x,y,w,h) of the rect
+    # cropped = res[rect[1]: rect[1] + rect[3], rect[0]: rect[0] + rect[2]]
 
     newPlayerBboxes = detect(res)
     return newPlayerBboxes
     
 
 # user can decide whether to manually select or whether to use object detection
-print("Would you like to use our object detection tool to try and find all of the players instead of inputing them all manually?")
-detection = input("Enter 'Y' for yes and 'N' for no. ")
-if (detection == "N" or detection == "n"): 
-    hitlSelection()
-else: 
-    playerBboxes = detectionSelection()
+# print("Would you like to use our object detection tool to try and find all of the players instead of inputing them all manually?")
+# detection = input("Enter 'Y' for yes and 'N' for no. ")
+# if (detection == "N" or detection == "n"): 
+#     hitlSelection()
+# else: 
+#     playerBboxes = detectionSelection()
+playerBboxes = detectionSelection()
 
 # add player trackers to the multitracker
 for bbox in playerBboxes:
@@ -138,14 +138,16 @@ for bbox in playerBboxes:
 
 # ==================== PLAYER/CORNER TRACKING ======================================
 
+counter = 0
 # Loop through video
 while cap.isOpened():
     success, img = cap.read()
+    counter += 1
     if not success:
         break
 
     # update tracking for corners
-    success, cornerBoxes = cornerMultiTracker.update(img)
+    success, cornerBboxes = cornerMultiTracker.update(img)
     # If tracking was lost, select new ROI of corner
     if (not success):
         print("Tracking of the " + str(cornerNames[i]) + " corner was lost!")
@@ -164,7 +166,10 @@ while cap.isOpened():
         # cornerTrackerList[i].init(img, cornerBboxes[i])
         # cv.destroyWindow('Reselect ' + str(corner[i]))
 
-    for i, newCornerBox in enumerate(cornerBoxes):
+    for i, newCornerBox in enumerate(cornerBboxes):
+        p1 = (int(newCornerBox[0]), int(newCornerBox[1]))
+        p2 = (int(newCornerBox[0] + newCornerBox[2]), int(newCornerBox[1] + newCornerBox[3]))
+        cv.rectangle(img, p1, p2, cornerColors[i], 2, 1)
         # get middle of box coordinate
         xCoord = (newCornerBox[0]+(newCornerBox[2]/2))
         yCoord = (newCornerBox[1]-(newCornerBox[3]/2))
@@ -174,45 +179,66 @@ while cap.isOpened():
     # update transformation matrix
     M = cv.getPerspectiveTransform(src,dst)
             
-    
+    # re detect players every x frames
+    if counter >= 30000:
+        counter = 0
+        playerBboxes = detectionSelection()
+        playerColors = []
+        playerMultiTracker = cv.legacy.MultiTracker_create()
 
-    # update tracking for players
-    success, playerBoxes = playerMultiTracker.update(img)
+        for bbox in playerBboxes:
+            playerColors.append((random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)))
+            tracker = cv.legacy.TrackerCSRT_create()
+            playerMultiTracker.add(tracker, img, bbox)
+    else:
+        # update tracking for players
+        success, playerBboxes = playerMultiTracker.update(img)
 
-    # If tracking was lost, select new ROI of player
-    if (not success):
-        print("Player was lost!")
-        # cv.imshow('Lost Player', player_images[i])
-        # bbox = cv.selectROI('Reselect Lost Player', img, False)
-        # cv.moveWindow('Reselect Lost Player', 10, 50)
+        # If tracking was lost, select new ROI of player
+        if (not success):
+            print("Player was lost!")
+            counter = 0
+            playerBboxes = detectionSelection()
+            playerColors = []
+            playerMultiTracker = cv.legacy.MultiTracker_create()
 
-        # if bbox == (0, 0, 0, 0):
-        #     # they didn't reselect the player, so set the location to -1, which
-        #     # means don't draw player and don't prompt every frame to re-draw
-        #     playerBboxes[i] = (-1, -1, -1, -1)
-        # else:
-        #     playerBboxes[i] = bbox
-        #     new_tracker = cv.legacy.TrackerCSRT_create()
-        #     trackerList[i] = new_tracker
-        #     trackerList[i].init(img, playerBboxes[i])
-        # cv.destroyWindow('Reselect Lost Player')
-        # cv.destroyWindow('Lost Player')
-        # playerBboxes = detectionSelection()
-    
-    # write new player field coordinates to csv
+            for bbox in playerBboxes:
+                playerColors.append((random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)))
+                tracker = cv.legacy.TrackerCSRT_create()
+                playerMultiTracker.add(tracker, img, bbox)
+
+
+            # cv.imshow('Lost Player', player_images[i])
+            # bbox = cv.selectROI('Reselect Lost Player', img, False)
+            # cv.moveWindow('Reselect Lost Player', 10, 50)
+
+            # if bbox == (0, 0, 0, 0):
+            #     # they didn't reselect the player, so set the location to -1, which
+            #     # means don't draw player and don't prompt every frame to re-draw
+            #     playerBboxes[i] = (-1, -1, -1, -1)
+            # else:
+            #     playerBboxes[i] = bbox
+            #     new_tracker = cv.legacy.TrackerCSRT_create()
+            #     trackerList[i] = new_tracker
+            #     trackerList[i].init(img, playerBboxes[i])
+            # cv.destroyWindow('Reselect Lost Player')
+            # cv.destroyWindow('Lost Player')
+            # playerBboxes = detectionSelection()
+        
+        # write new player field coordinates to csv
     csvLine = []
 
-    for i, newPlayerBox in enumerate(playerBoxes):
+    for i, newPlayerBox in enumerate(playerBboxes):
         p1 = (int(newPlayerBox[0]), int(newPlayerBox[1]))
         p2 = (int(newPlayerBox[0] + newPlayerBox[2]), int(newPlayerBox[1] + newPlayerBox[3]))
         cv.rectangle(img, p1, p2, playerColors[i], 2, 1)
-        if newPlayerBox[0] == -1:
+        if not newPlayerBox[0] > 0 :
             csvLine.append(-1)
             csvLine.append(-1)
         else:
             # get bottom middle coordinate
             xCoord = (newPlayerBox[0]+(newPlayerBox[2]/2))
-            yCoord = (newPlayerBox[1]-newPlayerBox[3])
+            yCoord = (newPlayerBox[1]+newPlayerBox[3])
             # convert field to rectangle and translate to yards
             convertedPlayerCoords = screen2fieldCoordinates(xCoord,yCoord, M)
             csvLine.append(convertedPlayerCoords[0])
@@ -220,17 +246,18 @@ while cap.isOpened():
                     
     csvWriter.writerow(csvLine)
 
-    cv.imshow("Player MultiTracker", img)
+    cv.imshow("Corner MultiTracker", img)
 
     # Exit if ESC pressed
     k = cv.waitKey(1) & 0xff
     if k == 27 : break
     
     # grab every 10th frame to speed up testing
-    # for i in range(9):
-    #     success, img = cap.read()
-    #     if not success:
-    #         break
+    for i in range(4):
+        success, img = cap.read()
+        counter += 1
+        if not success:
+            break
 
 # ======================= CLEANUP ==================================================
 
