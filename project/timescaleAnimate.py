@@ -41,7 +41,7 @@ playerDataReader = csv.reader(playerData)
 #clear header, store for debugging
 header = next(playerDataReader)
 #the number of players is (1/2)(x-1), where x is the length of the header
-numPlayers = int((.5)*(len(header) -1))
+numPlayers = int((.5)*(len(header)))
 print("num players = " + str(numPlayers))
 #debug
 #print(numPlayers)
@@ -112,7 +112,7 @@ def update(frame):
     
     if (nextData) :
         #update each player
-        for i in range (1, len(header), 2) :
+        for i in range (0, len(header)-1, 2) :
             playerVal = int((.5) * (i - 1))
             xdatas[playerVal] = (float(nextData[i+1]))
             ydatas[playerVal] = (float(nextData[i]))
