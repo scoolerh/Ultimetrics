@@ -40,17 +40,19 @@ def screen2fieldCoordinates(x,y, transformation_matrix):
 
 # ===================== INITIAL PLAYER/CORNER LOCATION =============================
 
-# draws a box around a selected area in an img
-def drawBox(img, bbox):
-    x, y, w, h = int(bbox[0]), int(bbox[1]), int(bbox[2]), int(bbox[3])
+# produce a random NOT GREEN color 
+def randomColor():
     r = random.randint(0,255)
     g = random.randint(0,255)
     b = random.randint(0,255)
     while (g>100 and g>(r*2) and g>(b*2)):
-        r = random.randint(0,255)
         g = random.randint(0,255)
-        b = random.randint(0,255)
-    cv.rectangle (img,(x,y), ((x+w), (y+h)), (r,g,b), 3,1)
+    return (r,g,b)
+
+# draws a box around a selected area in an img
+def drawBox(img, bbox):
+    x, y, w, h = int(bbox[0]), int(bbox[1]), int(bbox[2]), int(bbox[3])
+    cv.rectangle (img,(x,y), ((x+w), (y+h)), randomColor(), 3,1)
 
 # instantiate corner trackers
 cornerTrackerList = []
@@ -78,7 +80,7 @@ for j in range(4):
 
 # initialize corner multiTracker
 for bbox in cornerBboxes:
-    cornerColors.append((random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)))
+    cornerColors.append(randomColor())
     tracker = cv.legacy.TrackerCSRT_create()
     cornerMultiTracker.add(tracker, img, bbox)
 
@@ -133,7 +135,7 @@ playerBboxes = detectionSelection()
 
 # add player trackers to the multitracker
 for bbox in playerBboxes:
-    playerColors.append((random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)))
+    playerColors.append(randomColor())
     tracker = cv.legacy.TrackerCSRT_create()
     playerMultiTracker.add(tracker, img, bbox)
 
@@ -174,7 +176,7 @@ while cap.isOpened():
         playerMultiTracker = cv.legacy.MultiTracker_create()
 
         for bbox in playerBboxes:
-            playerColors.append((random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)))
+            playerColors.append(randomColor())
             tracker = cv.legacy.TrackerCSRT_create()
             playerMultiTracker.add(tracker, img, bbox)
     else:
@@ -190,7 +192,7 @@ while cap.isOpened():
             playerMultiTracker = cv.legacy.MultiTracker_create()
 
             for bbox in playerBboxes:
-                playerColors.append((random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)))
+                playerColors.append(randomColor())
                 tracker = cv.legacy.TrackerCSRT_create()
                 playerMultiTracker.add(tracker, img, bbox)
 
