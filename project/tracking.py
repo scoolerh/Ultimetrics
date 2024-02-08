@@ -30,7 +30,6 @@ topRightCoord = [0,0]
 src = np.float32([[0,0],[0,0],[0,0],[0,0]])
 dst = np.float32([[0,25],[0,95],[40,95],[40,25]])
 M = None
-# M = cv.getPerspectiveTransform(src,dst)
 
 #converts pixel coordinates to field coordinates in yards from top left
 def screen2fieldCoordinates(x,y, transformation_matrix):
@@ -79,6 +78,7 @@ for bbox in cornerBboxes:
     tracker = cv.legacy.TrackerCSRT_create()
     cornerMultiTracker.add(tracker, img, bbox)
 
+# recognizing corners for first frame
 for i, cornerBox in enumerate(cornerBboxes):
     # get middle of box coordinate
     xCoord = (cornerBox[0]+(cornerBox[2]/2))
@@ -114,9 +114,6 @@ def detectionSelection():
 
     res = cv.bitwise_and(img,img,mask = mask)
 
-    # rect = cv.boundingRect(points) # returns (x,y,w,h) of the rect
-    # cropped = res[rect[1]: rect[1] + rect[3], rect[0]: rect[0] + rect[2]]
-
     newPlayerBboxes = detect(res)
     return newPlayerBboxes
     
@@ -151,20 +148,6 @@ while cap.isOpened():
     # If tracking was lost, select new ROI of corner
     if (not success):
         print("Tracking of the " + str(cornerNames[i]) + " corner was lost!")
-        # reSelectedCorner = False
-        # while not reSelectedCorner:
-        #     cornerBbox = cv.selectROI('Reselect ' + str(corner[i]), img, False)
-        #     cv.moveWindow('Reselect ' + str(corner[i]), 0, 0)
-        #     # If no coordinates were selected
-        #     if cornerBbox != (0, 0, 0, 0):
-        #         reSelectedCorner = True
-
-        # # Insert new cornerBbox into list and continue tracking
-        # cornerBboxes[i] = cornerBbox
-        # new_tracker = cv.legacy.TrackerCSRT_create()
-        # cornerTrackerList[i] = new_tracker
-        # cornerTrackerList[i].init(img, cornerBboxes[i])
-        # cv.destroyWindow('Reselect ' + str(corner[i]))
 
     for i, newCornerBox in enumerate(cornerBboxes):
         p1 = (int(newCornerBox[0]), int(newCornerBox[1]))
@@ -194,7 +177,7 @@ while cap.isOpened():
         # update tracking for players
         success, playerBboxes = playerMultiTracker.update(img)
 
-        # If tracking was lost, select new ROI of player
+        # If tracking was lost, run detection again 
         if (not success):
             print("Player was lost!")
             counter = 0
@@ -207,25 +190,6 @@ while cap.isOpened():
                 tracker = cv.legacy.TrackerCSRT_create()
                 playerMultiTracker.add(tracker, img, bbox)
 
-
-            # cv.imshow('Lost Player', player_images[i])
-            # bbox = cv.selectROI('Reselect Lost Player', img, False)
-            # cv.moveWindow('Reselect Lost Player', 10, 50)
-
-            # if bbox == (0, 0, 0, 0):
-            #     # they didn't reselect the player, so set the location to -1, which
-            #     # means don't draw player and don't prompt every frame to re-draw
-            #     playerBboxes[i] = (-1, -1, -1, -1)
-            # else:
-            #     playerBboxes[i] = bbox
-            #     new_tracker = cv.legacy.TrackerCSRT_create()
-            #     trackerList[i] = new_tracker
-            #     trackerList[i].init(img, playerBboxes[i])
-            # cv.destroyWindow('Reselect Lost Player')
-            # cv.destroyWindow('Lost Player')
-            # playerBboxes = detectionSelection()
-        
-        # write new player field coordinates to csv
     csvLine = []
 
     for i, newPlayerBox in enumerate(playerBboxes):
