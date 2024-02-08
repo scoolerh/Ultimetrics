@@ -40,12 +40,16 @@ def screen2fieldCoordinates(x,y, transformation_matrix):
 
 # ===================== INITIAL PLAYER/CORNER LOCATION =============================
 
-# draws a randomly colored box around a selected area in an img
+# draws a box around a selected area in an img
 def drawBox(img, bbox):
     x, y, w, h = int(bbox[0]), int(bbox[1]), int(bbox[2]), int(bbox[3])
-    r = random.randint(0,256)
-    g = random.randint(0,256)
-    b = random.randint(0,256)
+    r = random.randint(0,255)
+    g = random.randint(0,255)
+    b = random.randint(0,255)
+    while (g>100 and g>(r*2) and g>(b*2)):
+        r = random.randint(0,255)
+        g = random.randint(0,255)
+        b = random.randint(0,255)
     cv.rectangle (img,(x,y), ((x+w), (y+h)), (r,g,b), 3,1)
 
 # instantiate corner trackers
