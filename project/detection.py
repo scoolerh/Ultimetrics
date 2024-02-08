@@ -1,17 +1,24 @@
 import yolov5
 import csv
 
-def detect(image):
-    # load model
-    model = yolov5.load('keremberke/yolov5m-football')
-    
-    # set model parameters
-    model.conf = 0.45  # NMS confidence threshold
-    model.iou = 0.45  # NMS IoU threshold
-    model.agnostic = False  # NMS class-agnostic
-    model.multi_label = False  # NMS multiple labels per box
-    model.max_det = 1000  # maximum number of detections per image
+model = None
 
+def load_model():
+    global model
+    if not model:
+        # load model
+        model = yolov5.load('keremberke/yolov5m-football')
+        
+        # set model parameters
+        model.conf = 0.45  # NMS confidence threshold
+        model.iou = 0.45  # NMS IoU threshold
+        model.agnostic = False  # NMS class-agnostic
+        model.multi_label = False  # NMS multiple labels per box
+        model.max_det = 14  # maximum number of detections per image
+
+def detect(image):
+    
+    load_model()
 
     # perform inference
     results = model(image, size=640)
