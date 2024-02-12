@@ -1,3 +1,5 @@
 *.csv
 *.gif
 *.MP4
+
+__pycache__/
