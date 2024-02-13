@@ -7,10 +7,10 @@ import matplotlib.colors as clrs
 import matplotlib.animation as animation
 import os
 import csv
+# from matplotlib.animation import FFMpegWriter
 #from matplotlib.animation import FuncAnimation
 # import ffmpeg
 
-plt.rcParams['animation.ffmpeg_path'] ='./animation.mp4'
 
 #NOTE: file format
 #file that we're writing in -- format is one column of frame numbers (1, 2, 3, 4, 5), and then 
@@ -95,7 +95,11 @@ def update(frame):
     return playerList,
 
 anim = animation.FuncAnimation(fig, update, frames=range(1,numFrames), repeat=False, interval=100)
-
+# anim.save("./animation_moviepy.mp4")
+# print('pausing')
+writer = animation.FFMpegWriter(
+    fps=8, metadata=dict(artist='Conor_And_Taylor'), bitrate=800)
+anim.save("frisbeeMovie.mp4", writer=writer)
 plt.show()
 ##animation##
 # FFwriter = animation.FFMpegWriter(fps=10)
@@ -121,9 +125,9 @@ plt.show()
 # output.close()
 # plt.close() 
 # html = display.HTML(video) 
-""" 
-f = "animation.gif" 
-writergif = animation.PillowWriter(fps=30, codec='libx264', bitrate=2) 
-anim.save(f, writer=writergif) """
+# """ 
+# f = "animation.gif" 
+# writergif = animation.PillowWriter(fps=30, codec='libx264', bitrate=2) 
+# anim.save(f, writer=writergif) """
 
 plt.close()
