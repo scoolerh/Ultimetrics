@@ -7,6 +7,7 @@ import matplotlib.colors as clrs
 import matplotlib.animation as animation
 import os
 import csv
+from matplotlib.animation import FFMpegFileWriter
 #from matplotlib.animation import FuncAnimation
 # import ffmpeg
 
@@ -94,6 +95,11 @@ def update(frame):
     return playerList,
 
 anim = animation.FuncAnimation(fig, update, frames=range(1,numFrames), repeat=False, interval=100)
+# anim.save("./animation_moviepy.mp4")
+# print('pausing')
+with FFMpegFileWriter(fps=10) as writer:
+    anim.save('./animation_moviepy.mp4', writer=writer)
+
 
 plt.show()
 ##animation##
