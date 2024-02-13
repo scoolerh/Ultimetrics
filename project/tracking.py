@@ -60,6 +60,7 @@ for i in range(4):
 cornerMultiTracker = cv.legacy.MultiTracker_create()
 playerMultiTracker = cv.legacy.MultiTracker_create()
 
+
 # lists for storing information about players and corners 
 playerBboxes = []
 playerBoxColors = []
@@ -126,6 +127,30 @@ for bbox in playerBboxes:
 colorWriter.writerows(playerBoxColors)
 
 # ==================== PLAYER/CORNER TRACKING ======================================
+kalmanFilters = []
+
+# Initialize Kalman Filters for all 14 players
+for _ in range(14):
+    kalman = cv.KalmanFilter(4, 2)  # 4 states (x, y, dx, dy), 2 measurements (x, y)
+    kalman.transitionMatrix = np.array([[1, 0, 1, 0],
+                                        [0, 1, 0, 1],
+                                        [0, 0, 1, 0],
+                                        [0, 0, 0, 1]], dtype=np.float32)
+    
+    kalman.measurementMatrix = np.array([[1, 0, 0, 0],
+                                         [0, 1, 0, 0]], dtype=np.float32)
+    
+    kalman.processNoiseCov = np.array([[1, 0, 0, 0],
+                                       [0, 1, 0, 0],
+                                       [0, 0, 1, 0],
+                                       [0, 0, 0, 1]], dtype=np.float32) * 0.03
+    
+    kalman.measurementNoiseCov = np.array([[1, 0],
+                                            [0, 1]], dtype=np.float32) * 0.1
+    
+    kalman.statePre = np.zeros((4, 1), dtype=np.float32)
+    kalman.statePost = np.zeros((4, 1), dtype=np.float32)
+    kalmanFilters.append(kalman)
 
 counter = 0
 # Loop through video
@@ -181,6 +206,49 @@ while cap.isOpened():
                 playerBoxColors.append(randomColor())
                 tracker = cv.legacy.TrackerCSRT_create()
                 playerMultiTracker.add(tracker, img, bbox)
+            
+            # Update Kalman filters array with new filters if necessary
+            if len(kalmanFilters) != len(playerBboxes):
+                kalmanFilters = []
+                for _ in range(len(playerBboxes)):
+                    kalman = cv.KalmanFilter(4, 2)  # 4 states (x, y, dx, dy), 2 measurements (x, y)
+                    kalman.transitionMatrix = np.array([[1, 0, 1, 0],
+                                                        [0, 1, 0, 1],
+                                                        [0, 0, 1, 0],
+                                                        [0, 0, 0, 1]], dtype=np.float32)
+                    kalman.measurementMatrix = np.array([[1, 0, 0, 0],
+                                                        [0, 1, 0, 0]], dtype=np.float32)
+                    kalman.processNoiseCov = np.array([[1, 0, 0, 0],
+                                                    [0, 1, 0, 0],
+                                                    [0, 0, 1, 0],
+                                                    [0, 0, 0, 1]], dtype=np.float32) * 0.03
+                    kalman.measurementNoiseCov = np.array([[1, 0],
+                                                            [0, 1]], dtype=np.float32) * 0.1
+                    kalman.statePost = np.zeros((4, 1), dtype=np.float32)
+                    kalmanFilters.append(kalman)
+
+        else:
+            # Loop through all players
+            for i, bbox in enumerate(playerBboxes):
+                # Get the middle coordinates of the bounding box
+                xCoord = bbox[0] + bbox[2] / 2
+                yCoord = bbox[1] + bbox[3] / 2
+                measurement = np.array([[xCoord], [yCoord]], dtype=np.float32)
+
+                # Predict the next state using Kalman filter
+                prediction = kalmanFilters[i].predict()
+
+                # Update the predicted position using information from the CSRT tracker
+                kalmanFilters[i].statePre[0] = xCoord
+                kalmanFilters[i].statePre[1] = yCoord
+
+                # Correct the Kalman filter using the measured position
+                kalmanFilters[i].correct(measurement)
+
+                # Get the corrected position
+                corrected_position = kalmanFilters[i].statePost
+                # Use the corrected position for further processing or visualization
+
 
     csvLine = []
 
