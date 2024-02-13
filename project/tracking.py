@@ -49,6 +49,12 @@ def randomColor():
         b = random.randint(0,255)
     return (r,g,b)
 
+def drawBox(img, bbox):
+    x, y, w, h = int(bbox[0]), int(bbox[1]), int(bbox[2]), int(bbox[3])
+    color = randomColor()
+    cv.rectangle (img,(x,y), ((x+w), (y+h)), color, 3,1)
+    return color
+
 # instantiate corner trackers
 cornerTrackerList = []
 cornerNames = ["top left", "bottom left", "bottom right", "top right"]
@@ -67,11 +73,15 @@ cornerBboxes = []
 cornerColors = []
 
 # have user select the corners 
-# for j in range(4):
-#     print('Draw a box around the ' + cornerNames[j] + ' corner.')
-#     cornerBbox = cv.selectROI('Corner MultiTracker', img, False)
-#     cornerBboxes.append(cornerBbox)
+""" print("Please mark a box around each corner.")
+for j in range(4):
+    print('Draw a box around the ' + cornerNames[j] + ' corner.')
+    cornerBbox = cv.selectROI('Corner MultiTracker', img, False, printNotice=False)
+    cornerBboxes.append(cornerBbox)
+    drawBox(img,cornerBbox) """
 cornerBboxes = [(1189, 676, 11, 15), (0, 1739, 26, 30), (3513, 1662, 27, 37), (2294, 676, 21, 17)]
+# for han: 
+# cornerBboxes = [(1307, 256, 22, 25), (22, 1535, 27, 30), (3580, 1577, 36, 50), (2150, 260, 33, 27)]
 
 # initialize corner multiTracker
 for bbox in cornerBboxes:
@@ -89,16 +99,7 @@ for i, cornerBox in enumerate(cornerBboxes):
     src[i][1] = yCoord
 M = cv.getPerspectiveTransform(src,dst)
 
-# have user select the players 
-def hitlSelection():
-    while True:
-        bbox = cv.selectROI('Player MultiTracker', img)
-        playerBboxes.append(bbox)
-        print("Press q to quit selecting boxes and start tracking")
-        print("Press any other key to select next object")
-        k = cv.waitKey(0) & 0xFF
-        if (k == 113):  # q is pressed
-            break
+print("Corners Found ----------------------------------------------------------------------------------------")
 
 # use object detection to find players 
 def detectionSelection():
@@ -115,15 +116,44 @@ def detectionSelection():
 
     newPlayerBboxes = detect(res)
     return newPlayerBboxes
-    
-# add player trackers to the multitracker
+
 playerBboxes = detectionSelection()
+
+# add player trackers to the multitracker
 for bbox in playerBboxes:
     playerBoxColors.append(randomColor())
     tracker = cv.legacy.TrackerCSRT_create()
     playerMultiTracker.add(tracker, img, bbox)
 
+# write the boxes on the image 
+for i, box in enumerate(playerBboxes):
+    p1 = (int(box[0]), int(box[1]))
+    p2 = (int(box[0] + box[2]), int(box[1] + box[3]))
+    cv.rectangle(img, p1, p2, playerBoxColors[i], 2, 1)
+
+playersDetected = len(playerBboxes)
+print("Detection complete: " + str(playersDetected) + " players found. ---------------------------------------------------------")
+
+# have user select any players that were not found by object detection 
+while len(playerBboxes) < 14:
+    bbox = cv.selectROI('Select any unmarked players.', img, False, printNotice=False)
+    playerBboxes.append(bbox)
+    color = drawBox(img,bbox)
+    print("Player found ------------------------------------------------------------------")
+    playerBoxColors.append(color)
+
+cv.destroyWindow('Select any unmarked players.')
+playersDetected = len(playerBboxes)
+print("HITL complete: " + str(playersDetected) + " players found. --------------------------------------------------------")
+
+# add player trackers to the multitracker
+for i in range(playersDetected - 1, len(playerBboxes)):
+    bbox = playerBboxes[i]
+    tracker = cv.legacy.TrackerCSRT_create()
+    playerMultiTracker.add(tracker, img, bbox)
+
 colorWriter.writerows(playerBoxColors)
+print("Beginning tracking -------------------------------------------------------------------------")
 
 # ==================== PLAYER/CORNER TRACKING ======================================
 
@@ -202,7 +232,7 @@ while cap.isOpened():
                     
     csvWriter.writerow(csvLine)
 
-    cv.imshow("Corner MultiTracker", img)
+    cv.imshow("Tracking in progress", img)
 
     # Exit if ESC pressed
     k = cv.waitKey(1) & 0xff
@@ -214,6 +244,8 @@ while cap.isOpened():
         counter += 1
         if not success:
             break
+
+print("Tracking complete. -----------------------------------------------------------------------")
 
 # ======================= CLEANUP ==================================================
 
