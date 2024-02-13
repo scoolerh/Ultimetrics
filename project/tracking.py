@@ -70,6 +70,7 @@ cornerColors = []
 # have user select the corners 
 # for j in range(4):
 #     print('Draw a box around the ' + cornerNames[j] + ' corner.')
+#     cv.resize(img, (960, 540))
 #     cornerBbox = cv.selectROI('Corner MultiTracker', img, False)
 #     cornerBboxes.append(cornerBbox)
 cornerBboxes = [(1189, 676, 11, 15), (0, 1739, 26, 30), (3513, 1662, 27, 37), (2294, 676, 21, 17)]
@@ -93,6 +94,7 @@ M = cv.getPerspectiveTransform(src,dst)
 # have user select the players 
 def hitlSelection():
     while True:
+        cv.resize(img, (960, 540))
         bbox = cv.selectROI('Player MultiTracker', img)
         playerBboxes.append(bbox)
         print("Press q to quit selecting boxes and start tracking")
