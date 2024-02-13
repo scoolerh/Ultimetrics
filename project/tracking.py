@@ -250,6 +250,9 @@ while cap.isOpened():
                 # Get the corrected position
                 corrected_position = kalmanFilters[i].statePost
                 # Use the corrected position for further processing or visualization
+                bbox[0]= kalmanFilters[i].statePost[0] - bbox[2] / 2
+                bbox[1]= kalmanFilters[i].statePost[1] - bbox[3] / 2
+                
 
 
     csvLine = []
