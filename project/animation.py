@@ -41,21 +41,21 @@ for i in range(numPlayers) :
 
 #create the frisbee field - 110 x 40
 def generate_field() :
-    field = patches.Rectangle((0, 0), 120.0, 40.0, linewidth=2, edgecolor='white', facecolor='green', zorder=0)
+    field = patches.Rectangle((0, 0), 110.0, 40.0, linewidth=2, edgecolor='white', facecolor='green', zorder=0)
     #initialize figure and axis data
     fig, ax = plt.subplots(1, figsize=(11, 4))
     ax.add_patch(field)
     #add field lines
-    ax.axvline(x=25, color="white", zorder=1)
-    ax.axvline(x=95, color="white",zorder=1)
+    ax.axvline(x=20.0, color="white", zorder=1)
+    ax.axvline(x=90.0, color="white",zorder=1)
     #add horizontal lines to give axis context
     ax.axhline(y=0.0, color="white",zorder=1)
     ax.axhline(y=40.0, color="white",zorder=1)
     plt.axis('off')
 
     #creating scatter plots for the players? Maybe something we want to do
-    ax.scatter([], [], c= 'blue', label = 'Darkside', zorder=2)
-    ax.scatter([], [], c= 'red', label = 'Losing Team (The CUT)', zorder=2)
+    ax.scatter([], [], c= 'blue', label = 'CUTrules', zorder=2)
+    ax.scatter([], [], c= 'red', label = 'Losing Team', zorder=2)
     # ax.scatter([], [], c='white' , label = 'Disc', zorder=2)
     ax.legend(loc='upper right')
 
