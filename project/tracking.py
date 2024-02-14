@@ -160,6 +160,7 @@ print("Detection complete: " + str(playersDetected) + " players found. ---------
 
 # have user select any players that were not found by object detection 
 while len(playerBboxes) < 14:
+    img = cv.resize(img, (1200, 900))
     bbox = cv.selectROI('Select any unmarked players.', img, False, printNotice=False)
     playerBboxes.append(bbox)
     color = drawBox(img,bbox)
@@ -326,6 +327,7 @@ while cap.isOpened():
                     
     csvWriter.writerow(csvLine)
 
+    img = cv.resize(img, (1200, 900))
     cv.imshow("Tracking in progress", img)
 
     # Exit if ESC pressed
