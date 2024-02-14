@@ -25,8 +25,9 @@ bottomLeftCoord = [0,0]
 bottomRightCoord = [0,0]
 topRightCoord = [0,0]
 
+#coordinates fixed as of 2/14/2024
 src = np.float32([[0,0],[0,0],[0,0],[0,0]])
-dst = np.float32([[0,25],[0,95],[40,95],[40,25]])
+dst = np.float32([[0,20],[0,90],[40,90],[40,20]])
 M = None
 
 #converts pixel coordinates to field coordinates in yards from top left
