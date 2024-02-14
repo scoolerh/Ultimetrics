@@ -49,6 +49,27 @@ def randomColor():
         b = random.randint(0,255)
     return (r,g,b)
 
+# new color function to differentiate between the two teams 
+def randomOffensiveColor():
+    r = random.randint(0,255)
+    g = random.randint(0,255)
+    b = random.randint(0,130)
+    while (((g >= 1.75*r) and (g >= 1.75*b)) or (r%5 != 0 or b%5 != 0 or g%5 != 0)):
+        r = random.randint(0,255)
+        g = random.randint(0,255)
+        b = random.randint(0,130)
+    return (r,g,b)
+
+def randomDefensiveColor():
+    r = random.randint(0,255)
+    g = random.randint(0,255)
+    b = random.randint(130,255)
+    while (((g >= 1.75*r) and (g >= 1.75*b)) or (r%5 != 0 or b%5 != 0 or g%5 != 0)):
+        r = random.randint(0,255)
+        g = random.randint(0,255)
+        b = random.randint(130,255)
+    return (r,g,b)
+
 def drawBox(img, bbox):
     x, y, w, h = int(bbox[0]), int(bbox[1]), int(bbox[2]), int(bbox[3])
     color = randomColor()
