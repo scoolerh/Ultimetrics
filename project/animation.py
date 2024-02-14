@@ -1,12 +1,10 @@
-import configparser
-import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
-import matplotlib.colors as clrs
 import matplotlib.animation as animation
-import os
 import csv
+import warnings
+warnings.filterwarnings("ignore")
+
 # from matplotlib.animation import FFMpegWriter
 #from matplotlib.animation import FuncAnimation
 # import ffmpeg
