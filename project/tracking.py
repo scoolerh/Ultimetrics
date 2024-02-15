@@ -282,7 +282,7 @@ while cap.isOpened():
                     kalmanFilters.append(kalman)
 
         else:
-            # Loop through all players
+            # Loop through all players for Kalman filtering
             for i, bbox in enumerate(playerBboxes):
                 # Get the middle coordinates of the bounding box
                 xCoord = bbox[0] + bbox[2] / 2
@@ -292,18 +292,16 @@ while cap.isOpened():
                 # Predict the next state using Kalman filter
                 prediction = kalmanFilters[i].predict()
 
-                # Update the predicted position using information from the CSRT tracker
-                kalmanFilters[i].statePre[0] = xCoord
-                kalmanFilters[i].statePre[1] = yCoord
-
                 # Correct the Kalman filter using the measured position
                 kalmanFilters[i].correct(measurement)
 
                 # Get the corrected position
                 corrected_position = kalmanFilters[i].statePost
-                # Use the corrected position for further processing or visualization
-                bbox[0]= corrected_position[0] - bbox[2] / 2
-                bbox[1]= corrected_position[1] - bbox[3] / 2
+
+                # Update player bounding box coordinates with corrected position
+                bbox[0] = corrected_position[0] - bbox[2] / 2
+                bbox[1] = corrected_position[1] - bbox[3] / 2
+
                 
 
 
