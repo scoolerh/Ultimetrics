@@ -16,6 +16,8 @@ f = open("playercoordinates.csv", "w", newline='')
 csvWriter = csv.writer(f, delimiter=',')
 colors = open("playercolors.csv", "w", newline='')
 colorWriter = csv.writer(colors, delimiter=',')
+teams = open("teams.csv", "w", newline='')
+teamWriter = csv.writer(teams, delimiter=',')
 
 # ================= MATH CONVERSION SETUP ==========================================
 
@@ -103,9 +105,9 @@ for j in range(4):
     cornerBbox = cv.selectROI('Corner MultiTracker', img, False, printNotice=False)
     cornerBboxes.append(cornerBbox)
     drawBox(img,cornerBbox) """
-cornerBboxes = [(1189, 676, 11, 15), (0, 1739, 26, 30), (3513, 1662, 27, 37), (2294, 676, 21, 17)]
+#cornerBboxes = [(1189, 676, 11, 15), (0, 1739, 26, 30), (3513, 1662, 27, 37), (2294, 676, 21, 17)]
 # for han: 
-# cornerBboxes = [(1307, 256, 22, 25), (22, 1535, 27, 30), (3580, 1577, 36, 50), (2150, 260, 33, 27)]
+cornerBboxes = [(1307, 256, 22, 25), (22, 1535, 27, 30), (3580, 1577, 36, 50), (2150, 260, 33, 27)]
 
 # initialize corner multiTracker
 for bbox in cornerBboxes:
@@ -143,42 +145,52 @@ def detectionSelection():
 
 playerBboxes = detectionSelection()
 
-# add player trackers to the multitracker
-for bbox in playerBboxes:
-    playerBoxColors.append(randomColor())
-    tracker = cv.legacy.TrackerCSRT_create()
-    playerMultiTracker.add(tracker, img, bbox)
-
 # write the boxes on the image 
-for i, box in enumerate(playerBboxes):
+i = 0
+for box in playerBboxes:
+    i += 1
     p1 = (int(box[0]), int(box[1]))
     p2 = (int(box[0] + box[2]), int(box[1] + box[3]))
-    cv.rectangle(img, p1, p2, playerBoxColors[i], 2, 1)
+    color = randomColor()
+    playerBoxColors.append(color)
+    (w, h), _ = cv.getTextSize(str(i), cv.FONT_HERSHEY_SIMPLEX, 0.6, 2)
+    cv.rectangle(img, p1, p2, color, 2, 1)
+    cv.rectangle(img, (int(box[0]), int(box[1])-20), (int(box[0])+w+10, int(box[1])), color, -1)
+    cv.putText(img, str(i), (int(box[0])+5, int(box[1])-5), cv.FONT_HERSHEY_SIMPLEX, 0.6, (0,0,0), 2)
 
-playersDetected = len(playerBboxes)
-print("Detection complete: " + str(playersDetected) + " players found. ---------------------------------------------------------")
+print("Detection complete: " + str(len(playerBboxes)) + " players found. ----------------------------------------------------------------")
 
 # have user select any players that were not found by object detection 
 while len(playerBboxes) < 14:
-    img = cv.resize(img, (1200, 900))
-    bbox = cv.selectROI('Select any unmarked players.', img, False, printNotice=False)
+    i += 1
+    #img = cv.resize(img, (1200, 900))
+    bbox = cv.selectROI('Select any players not currently identified.', img, False, printNotice=False)
     playerBboxes.append(bbox)
-    color = drawBox(img,bbox)
-    print("Player found ------------------------------------------------------------------")
+    p1 = (int(bbox[0]), int(bbox[1]))
+    p2 = (int(bbox[0] + bbox[2]), int(bbox[1] + bbox[3]))
+    color = randomColor()
     playerBoxColors.append(color)
-
-cv.destroyWindow('Select any unmarked players.')
-playersDetected = len(playerBboxes)
-print("HITL complete: " + str(playersDetected) + " players found. --------------------------------------------------------")
+    (w, h), _ = cv.getTextSize(str(i), cv.FONT_HERSHEY_SIMPLEX, 0.6, 2)
+    cv.rectangle(img, p1, p2, color, 2, 1)
+    cv.rectangle(img, (int(bbox[0]), int(bbox[1])-20), (int(bbox[0])+w+10, int(bbox[1])), color, -1)
+    cv.putText(img, str(i), (int(bbox[0])+5, int(bbox[1])-5), cv.FONT_HERSHEY_SIMPLEX, 0.6, (0,0,0), 2)
+    print("Player found -----------------------------------------------------------------------------------------")
 
 # add player trackers to the multitracker
-for i in range(playersDetected - 1, len(playerBboxes)):
-    bbox = playerBboxes[i]
+for bbox in playerBboxes: 
     tracker = cv.legacy.TrackerCSRT_create()
     playerMultiTracker.add(tracker, img, bbox)
 
+""" playerTeams = []
+cv.imshow("Please enter the teams for each player in the terminal. ", img)
+for i in range(1, 15):
+    cv.imshow("Please enter the teams for each player in the terminal. ", img)
+    team = input("What team is player " + str(i) + " on? Enter 1 or 2. ")
+    playerTeams.append(team) """
+
 colorWriter.writerows(playerBoxColors)
-print("Beginning tracking -------------------------------------------------------------------------")
+#teamWriter.writerows(playerTeams)
+print("Beginning tracking -----------------------------------------------------------------------------------")
 
 # ==================== PLAYER/CORNER TRACKING ======================================
 kalmanFilters = []
@@ -305,14 +317,15 @@ while cap.isOpened():
                 bbox[0]= kalmanFilters[i].statePost[0] - bbox[2] / 2
                 bbox[1]= kalmanFilters[i].statePost[1] - bbox[3] / 2
                 
-
-
     csvLine = []
 
     for i, newPlayerBox in enumerate(playerBboxes):
         p1 = (int(newPlayerBox[0]), int(newPlayerBox[1]))
         p2 = (int(newPlayerBox[0] + newPlayerBox[2]), int(newPlayerBox[1] + newPlayerBox[3]))
+        (w, h), _ = cv.getTextSize(str(i+1), cv.FONT_HERSHEY_SIMPLEX, 0.6, 1)
         cv.rectangle(img, p1, p2, playerBoxColors[i], 2, 1)
+        img = cv.rectangle(img, (int(newPlayerBox[0]), int(newPlayerBox[1])-20), (int(newPlayerBox[0])+w+10, int(newPlayerBox[1])), playerBoxColors[i], -1)
+        img = cv.putText(img, str(i + 1), (int(newPlayerBox[0]), int(newPlayerBox[1])-5), cv.FONT_HERSHEY_SIMPLEX, 0.6, (0,0,0), 2)
         if not newPlayerBox[0] > 0 :
             csvLine.append(-1)
             csvLine.append(-1)
@@ -327,7 +340,7 @@ while cap.isOpened():
                     
     csvWriter.writerow(csvLine)
 
-    img = cv.resize(img, (1200, 900))
+    #img = cv.resize(img, (1200, 900))
     cv.imshow("Tracking in progress", img)
 
     # Exit if ESC pressed
@@ -341,7 +354,7 @@ while cap.isOpened():
         if not success:
             break
 
-print("Tracking complete. -----------------------------------------------------------------------")
+print("Tracking complete. -----------------------------------------------------------------------------------")
 
 # ======================= CLEANUP ==================================================
 
