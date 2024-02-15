@@ -3,7 +3,7 @@ import random
 import csv
 import numpy as np
 from detection import detect
-import time
+import math
 
 # ==================== INITIAL SETUP ===============================================
 
@@ -54,6 +54,14 @@ def drawBox(img, bbox):
     x, y, w, h = int(bbox[0]), int(bbox[1]), int(bbox[2]), int(bbox[3])
     cv.rectangle (img,(x,y), ((x+w), (y+h)), randomColor(), 3,1)
 
+def getBottomMiddleCoords(box):
+    xCoord = (box[0]+(box[2]/2))
+    yCoord = (box[1]+box[3])
+    return [xCoord, yCoord]
+def getMiddleCoords(box):
+    xCoord = (box[0]+(box[2]/2))
+    yCoord = (box[1]-(box[3]/2))
+    return [xCoord, yCoord]
 # instantiate corner trackers
 cornerTrackerList = []
 cornerNames = ["top left", "bottom left", "bottom right", "top right"]
@@ -73,10 +81,11 @@ cornerBboxes = []
 cornerColors = []
 
 # have user select the corners 
-for j in range(4):
-    print('Draw a box around the ' + cornerNames[j] + ' corner.')
-    cornerBbox = cv.selectROI('Corner MultiTracker', img, False)
-    cornerBboxes.append(cornerBbox)
+# for j in range(4):
+#     print('Draw a box around the ' + cornerNames[j] + ' corner.')
+#     cornerBbox = cv.selectROI('Corner MultiTracker', img, False)
+#     cornerBboxes.append(cornerBbox)
+cornerBboxes = [(1189, 676, 11, 15), (0, 1739, 26, 30), (3513, 1662, 27, 37), (2294, 676, 21, 17)]
 
 # initialize corner multiTracker
 for bbox in cornerBboxes:
@@ -160,25 +169,71 @@ while cap.isOpened():
         p2 = (int(newCornerBox[0] + newCornerBox[2]), int(newCornerBox[1] + newCornerBox[3]))
         cv.rectangle(img, p1, p2, cornerColors[i], 2, 1)
         # get middle of box coordinate
-        xCoord = (newCornerBox[0]+(newCornerBox[2]/2))
-        yCoord = (newCornerBox[1]-(newCornerBox[3]/2))
+        middleCoords = getMiddleCoords(newCornerBox)
+        xCoord = middleCoords[0]
+        yCoord = middleCoords[1]
         # update src matrix
         src[i][0] = xCoord
         src[i][1] = yCoord
     # update transformation matrix
     M = cv.getPerspectiveTransform(src,dst)
-            
-    # re detect players every x frames
-    if counter >= 30000:
-        counter = 0
-        playerBboxes = detectionSelection()
-        playerColors = []
-        playerMultiTracker = cv.legacy.MultiTracker_create()
 
-        for bbox in playerBboxes:
-            playerColors.append(randomColor())
-            tracker = cv.legacy.TrackerCSRT_create()
-            playerMultiTracker.add(tracker, img, bbox)
+# ==================== PLAYER TRACKING ======================================
+    def redetectPlayers(redetectAll=False):
+        global playerBboxes
+        global playerMultiTracker
+        newPlayerBboxes = detectionSelection()
+        # playerColors = []
+
+        numDetectedPlayers = len(newPlayerBboxes)
+        numTrackedPlayers = len(playerBboxes)
+
+        if numTrackedPlayers >= numDetectedPlayers:
+            # trust tracking, don't use detection
+            # check if one player stole box from another player
+            pass
+            
+        elif numTrackedPlayers < numDetectedPlayers or redetectAll:
+            # trust detection, but preserve unique IDs
+
+            updatedPlayerBboxes = [None] * numDetectedPlayers
+
+            lastIndex = 0
+            for index, trackedPlayer in enumerate(playerBboxes):
+                oldLocation = getBottomMiddleCoords(trackedPlayer)
+
+                newLocationsDif = []
+                for newBbox in newPlayerBboxes:
+                    newLocationsDif.append(math.dist(getBottomMiddleCoords(newBbox), oldLocation))
+                    
+                closestIndex = np.argmin(newLocationsDif)
+                updatedPlayerBboxes[index] = newPlayerBboxes[closestIndex]
+                newPlayerBboxes[closestIndex] = [999999999,999999999, 1, 1]
+
+                lastIndex = index
+            lastIndex += 1
+            while lastIndex < numDetectedPlayers:
+                toAdd = None
+                for ind, newBox in enumerate(newPlayerBboxes):
+                    if newBox[0] != 999999999:
+                        toAdd = newBox
+                        newPlayerBboxes[ind] = [999999999,999999999, 1, 1]
+                        break
+                updatedPlayerBboxes[lastIndex] = toAdd
+                playerColors.append(randomColor())
+                lastIndex += 1
+
+            playerBboxes = updatedPlayerBboxes
+
+            playerMultiTracker = cv.legacy.MultiTracker_create()
+
+            for bbox in playerBboxes:
+                tracker = cv.legacy.TrackerCSRT_create()
+                playerMultiTracker.add(tracker, img, bbox)
+    # re detect players every x frames
+    if counter >= 30:
+        redetectPlayers()
+        counter = 0
     else:
         # update tracking for players
         success, playerBboxes = playerMultiTracker.update(img)
@@ -186,15 +241,8 @@ while cap.isOpened():
         # If tracking was lost, run detection again 
         if (not success):
             print("Player was lost!")
+            redetectPlayers(redetectAll=True)
             counter = 0
-            playerBboxes = detectionSelection()
-            playerColors = []
-            playerMultiTracker = cv.legacy.MultiTracker_create()
-
-            for bbox in playerBboxes:
-                playerColors.append(randomColor())
-                tracker = cv.legacy.TrackerCSRT_create()
-                playerMultiTracker.add(tracker, img, bbox)
 
     csvLine = []
 
@@ -207,8 +255,9 @@ while cap.isOpened():
             csvLine.append(-1)
         else:
             # get bottom middle coordinate
-            xCoord = (newPlayerBox[0]+(newPlayerBox[2]/2))
-            yCoord = (newPlayerBox[1]+newPlayerBox[3])
+            bottomMiddleCoords = getBottomMiddleCoords(newPlayerBox)
+            xCoord = bottomMiddleCoords[0]
+            yCoord = bottomMiddleCoords[1]
             # convert field to rectangle and translate to yards
             convertedPlayerCoords = screen2fieldCoordinates(xCoord,yCoord, M)
             csvLine.append(convertedPlayerCoords[0])
