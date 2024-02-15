@@ -9,15 +9,13 @@ import math
 
 # import video
 cap = cv.VideoCapture('frisbee.mp4')
-static_cap = cv.VideoCapture('frisbee.mp4')
 ret, img = cap.read()
-
-# to store the initial photo of each player, for when that player is lost 
-ret, static_image = static_cap.read()
 
 # set up CSV file to write into 
 f = open("playercoordinates.csv", "w", newline='')
 csvWriter = csv.writer(f, delimiter=',')
+colors = open("playercolors.csv", "w", newline='')
+colorWriter = csv.writer(colors, delimiter=',')
 
 # ================= MATH CONVERSION SETUP ==========================================
 
@@ -27,8 +25,9 @@ bottomLeftCoord = [0,0]
 bottomRightCoord = [0,0]
 topRightCoord = [0,0]
 
+#coordinates fixed as of 2/14/2024
 src = np.float32([[0,0],[0,0],[0,0],[0,0]])
-dst = np.float32([[0,25],[0,95],[40,95],[40,25]])
+dst = np.float32([[0,20],[0,90],[40,90],[40,20]])
 M = None
 
 #converts pixel coordinates to field coordinates in yards from top left
@@ -40,19 +39,43 @@ def screen2fieldCoordinates(x,y, transformation_matrix):
 
 # ===================== INITIAL PLAYER/CORNER LOCATION =============================
 
-# produce a random NOT GREEN color 
+# produce a random color with certain restrictions to make it look better 
 def randomColor():
     r = random.randint(0,255)
     g = random.randint(0,255)
     b = random.randint(0,255)
-    while (g>100 and g>(r*2) and g>(b*2)):
+    while (((g >= 1.75*r) and (g >= 1.75*b)) or (r%5 != 0 or b%5 != 0 or g%5 != 0)):
+        r = random.randint(0,255)
         g = random.randint(0,255)
+        b = random.randint(0,255)
     return (r,g,b)
 
-# draws a box around a selected area in an img
+# new color function to differentiate between the two teams 
+def randomOffensiveColor():
+    r = random.randint(0,255)
+    g = random.randint(0,255)
+    b = random.randint(0,130)
+    while (((g >= 1.75*r) and (g >= 1.75*b)) or (r%5 != 0 or b%5 != 0 or g%5 != 0)):
+        r = random.randint(0,255)
+        g = random.randint(0,255)
+        b = random.randint(0,130)
+    return (r,g,b)
+
+def randomDefensiveColor():
+    r = random.randint(0,255)
+    g = random.randint(0,255)
+    b = random.randint(130,255)
+    while (((g >= 1.75*r) and (g >= 1.75*b)) or (r%5 != 0 or b%5 != 0 or g%5 != 0)):
+        r = random.randint(0,255)
+        g = random.randint(0,255)
+        b = random.randint(130,255)
+    return (r,g,b)
+
 def drawBox(img, bbox):
     x, y, w, h = int(bbox[0]), int(bbox[1]), int(bbox[2]), int(bbox[3])
-    cv.rectangle (img,(x,y), ((x+w), (y+h)), randomColor(), 3,1)
+    color = randomColor()
+    cv.rectangle (img,(x,y), ((x+w), (y+h)), color, 3,1)
+    return color
 
 def getBottomMiddleCoords(box):
     xCoord = (box[0]+(box[2]/2))
@@ -73,19 +96,24 @@ for i in range(4):
 cornerMultiTracker = cv.legacy.MultiTracker_create()
 playerMultiTracker = cv.legacy.MultiTracker_create()
 
-playerBboxes = []
-playerImages = []
-playerColors = []
 
+# lists for storing information about players and corners 
+playerBboxes = []
+playerBoxColors = []
 cornerBboxes = []
 cornerColors = []
 
 # have user select the corners 
-# for j in range(4):
-#     print('Draw a box around the ' + cornerNames[j] + ' corner.')
-#     cornerBbox = cv.selectROI('Corner MultiTracker', img, False)
-#     cornerBboxes.append(cornerBbox)
+""" print("Please mark a box around each corner.")
+for j in range(4):
+    print('Draw a box around the ' + cornerNames[j] + ' corner.')
+    cv.resize(img, (960, 540))
+    cornerBbox = cv.selectROI('Corner MultiTracker', img, False, printNotice=False)
+    cornerBboxes.append(cornerBbox)
+    drawBox(img,cornerBbox) """
 cornerBboxes = [(1189, 676, 11, 15), (0, 1739, 26, 30), (3513, 1662, 27, 37), (2294, 676, 21, 17)]
+# for han: 
+# cornerBboxes = [(1307, 256, 22, 25), (22, 1535, 27, 30), (3580, 1577, 36, 50), (2150, 260, 33, 27)]
 
 # initialize corner multiTracker
 for bbox in cornerBboxes:
@@ -93,7 +121,7 @@ for bbox in cornerBboxes:
     tracker = cv.legacy.TrackerCSRT_create()
     cornerMultiTracker.add(tracker, img, bbox)
 
-# recognizing corners for first frame
+# get corners to update the transformation matrix
 for i, cornerBox in enumerate(cornerBboxes):
     # get middle of box coordinate
     xCoord = (cornerBox[0]+(cornerBox[2]/2))
@@ -101,20 +129,9 @@ for i, cornerBox in enumerate(cornerBboxes):
     # update src matrix
     src[i][0] = xCoord
     src[i][1] = yCoord
-    # update transformation matrix
 M = cv.getPerspectiveTransform(src,dst)
 
-# have user select the players 
-def hitlSelection():
-    while True:
-        # draw bounding boxes over players
-        bbox = cv.selectROI('Player MultiTracker', img)
-        playerBboxes.append(bbox)
-        print("Press q to quit selecting boxes and start tracking")
-        print("Press any other key to select next object")
-        k = cv.waitKey(0) & 0xFF
-        if (k == 113):  # q is pressed
-            break
+print("Corners Found ----------------------------------------------------------------------------------------")
 
 # use object detection to find players 
 def detectionSelection():
@@ -131,24 +148,71 @@ def detectionSelection():
 
     newPlayerBboxes = detect(res)
     return newPlayerBboxes
-    
 
-# user can decide whether to manually select or whether to use object detection
-# print("Would you like to use our object detection tool to try and find all of the players instead of inputing them all manually?")
-# detection = input("Enter 'Y' for yes and 'N' for no. ")
-# if (detection == "N" or detection == "n"): 
-#     hitlSelection()
-# else: 
-#     playerBboxes = detectionSelection()
 playerBboxes = detectionSelection()
 
 # add player trackers to the multitracker
 for bbox in playerBboxes:
-    playerColors.append(randomColor())
+    playerBoxColors.append(randomColor())
     tracker = cv.legacy.TrackerCSRT_create()
     playerMultiTracker.add(tracker, img, bbox)
 
+# write the boxes on the image 
+for i, box in enumerate(playerBboxes):
+    p1 = (int(box[0]), int(box[1]))
+    p2 = (int(box[0] + box[2]), int(box[1] + box[3]))
+    cv.rectangle(img, p1, p2, playerBoxColors[i], 2, 1)
+
+playersDetected = len(playerBboxes)
+print("Detection complete: " + str(playersDetected) + " players found. ---------------------------------------------------------")
+
+# have user select any players that were not found by object detection 
+while len(playerBboxes) < 14:
+    img = cv.resize(img, (1200, 900))
+    bbox = cv.selectROI('Select any unmarked players.', img, False, printNotice=False)
+    playerBboxes.append(bbox)
+    color = drawBox(img,bbox)
+    print("Player found ------------------------------------------------------------------")
+    playerBoxColors.append(color)
+
+cv.destroyWindow('Select any unmarked players.')
+playersDetected = len(playerBboxes)
+print("HITL complete: " + str(playersDetected) + " players found. --------------------------------------------------------")
+
+# add player trackers to the multitracker
+for i in range(playersDetected - 1, len(playerBboxes)):
+    bbox = playerBboxes[i]
+    tracker = cv.legacy.TrackerCSRT_create()
+    playerMultiTracker.add(tracker, img, bbox)
+
+colorWriter.writerows(playerBoxColors)
+print("Beginning tracking -------------------------------------------------------------------------")
+
 # ==================== PLAYER/CORNER TRACKING ======================================
+kalmanFilters = []
+
+# Initialize Kalman Filters for all 14 players
+for _ in range(14):
+    kalman = cv.KalmanFilter(4, 2)  # 4 states (x, y, dx, dy), 2 measurements (x, y)
+    kalman.transitionMatrix = np.array([[1, 0, 1, 0],
+                                        [0, 1, 0, 1],
+                                        [0, 0, 1, 0],
+                                        [0, 0, 0, 1]], dtype=np.float32)
+    
+    kalman.measurementMatrix = np.array([[1, 0, 0, 0],
+                                         [0, 1, 0, 0]], dtype=np.float32)
+     
+    kalman.processNoiseCov = np.array([[1, 0, 0, 0],
+                                       [0, 1, 0, 0],
+                                       [0, 0, 1, 0],
+                                       [0, 0, 0, 1]], dtype=np.float32) * 0.03
+    
+    kalman.measurementNoiseCov = np.array([[1, 0],
+                                            [0, 1]], dtype=np.float32) * 0.1
+    
+    kalman.statePre = np.zeros((4, 1), dtype=np.float32)
+    kalman.statePost = np.zeros((4, 1), dtype=np.float32)
+    kalmanFilters.append(kalman)
 
 counter = 0
 # Loop through video
@@ -234,6 +298,14 @@ while cap.isOpened():
     if counter >= 30:
         redetectPlayers()
         counter = 0
+        playerBboxes = detectionSelection()
+        playerBoxColors = []
+        playerMultiTracker = cv.legacy.MultiTracker_create()
+
+        for bbox in playerBboxes:
+            playerBoxColors.append(randomColor())
+            tracker = cv.legacy.TrackerCSRT_create()
+            playerMultiTracker.add(tracker, img, bbox)
     else:
         # update tracking for players
         success, playerBboxes = playerMultiTracker.update(img)
@@ -243,13 +315,67 @@ while cap.isOpened():
             print("Player was lost!")
             redetectPlayers(redetectAll=True)
             counter = 0
+            playerBboxes = detectionSelection()
+            playerBoxColors = []
+            playerMultiTracker = cv.legacy.MultiTracker_create()
+
+            for bbox in playerBboxes:
+                playerBoxColors.append(randomColor())
+                tracker = cv.legacy.TrackerCSRT_create()
+                playerMultiTracker.add(tracker, img, bbox)
+            
+            # Update Kalman filters array with new filters if necessary
+            if len(kalmanFilters) != len(playerBboxes):
+                kalmanFilters = []
+                for _ in range(len(playerBboxes)):
+                    kalman = cv.KalmanFilter(4, 2)  # 4 states (x, y, dx, dy), 2 measurements (x, y)
+                    kalman.transitionMatrix = np.array([[1, 0, 1, 0],
+                                                        [0, 1, 0, 1],
+                                                        [0, 0, 1, 0],
+                                                        [0, 0, 0, 1]], dtype=np.float32)
+                    kalman.measurementMatrix = np.array([[1, 0, 0, 0],
+                                                        [0, 1, 0, 0]], dtype=np.float32)
+                    kalman.processNoiseCov = np.array([[1, 0, 0, 0],
+                                                    [0, 1, 0, 0],
+                                                    [0, 0, 1, 0],
+                                                    [0, 0, 0, 1]], dtype=np.float32) * 0.03
+                    kalman.measurementNoiseCov = np.array([[1, 0],
+                                                            [0, 1]], dtype=np.float32) * 0.1
+                    kalman.statePost = np.zeros((4, 1), dtype=np.float32)
+                    kalmanFilters.append(kalman)
+
+        else:
+            # Loop through all players
+            for i, bbox in enumerate(playerBboxes):
+                # Get the middle coordinates of the bounding box
+                xCoord = bbox[0] + bbox[2] / 2
+                yCoord = bbox[1] + bbox[3] / 2
+                measurement = np.array([[xCoord], [yCoord]], dtype=np.float32)
+
+                # Predict the next state using Kalman filter
+                prediction = kalmanFilters[i].predict()
+
+                # Update the predicted position using information from the CSRT tracker
+                kalmanFilters[i].statePre[0] = xCoord
+                kalmanFilters[i].statePre[1] = yCoord
+
+                # Correct the Kalman filter using the measured position
+                kalmanFilters[i].correct(measurement)
+
+                # Get the corrected position
+                corrected_position = kalmanFilters[i].statePost
+                # Use the corrected position for further processing or visualization
+                bbox[0]= corrected_position[0] - bbox[2] / 2
+                bbox[1]= corrected_position[1] - bbox[3] / 2
+                
+
 
     csvLine = []
 
     for i, newPlayerBox in enumerate(playerBboxes):
         p1 = (int(newPlayerBox[0]), int(newPlayerBox[1]))
         p2 = (int(newPlayerBox[0] + newPlayerBox[2]), int(newPlayerBox[1] + newPlayerBox[3]))
-        cv.rectangle(img, p1, p2, playerColors[i], 2, 1)
+        cv.rectangle(img, p1, p2, playerBoxColors[i], 2, 1)
         if not newPlayerBox[0] > 0 :
             csvLine.append(-1)
             csvLine.append(-1)
@@ -265,7 +391,8 @@ while cap.isOpened():
                     
     csvWriter.writerow(csvLine)
 
-    cv.imshow("Corner MultiTracker", img)
+    img = cv.resize(img, (1200, 900))
+    cv.imshow("Tracking in progress", img)
 
     # Exit if ESC pressed
     k = cv.waitKey(1) & 0xff
@@ -278,9 +405,10 @@ while cap.isOpened():
         if not success:
             break
 
+print("Tracking complete. -----------------------------------------------------------------------")
+
 # ======================= CLEANUP ==================================================
 
 cap.release()
-static_cap.release()
 f.close()
 cv.destroyAllWindows()

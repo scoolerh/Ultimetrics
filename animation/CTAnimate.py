@@ -1,11 +1,13 @@
+import configparser
+import pandas as pd
+import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
+import matplotlib.colors as clrs
 import matplotlib.animation as animation
+import os
 import csv
-import warnings
-warnings.filterwarnings("ignore")
-
-# from matplotlib.animation import FFMpegWriter
+from matplotlib.animation import FFMpegFileWriter
 #from matplotlib.animation import FuncAnimation
 # import ffmpeg
 
@@ -95,9 +97,10 @@ def update(frame):
 anim = animation.FuncAnimation(fig, update, frames=range(1,numFrames), repeat=False, interval=100)
 # anim.save("./animation_moviepy.mp4")
 # print('pausing')
-writer = animation.FFMpegWriter(
-    fps=8, metadata=dict(artist='Conor_And_Taylor'), bitrate=800)
-anim.save("frisbeeMovie.mp4", writer=writer)
+with FFMpegFileWriter(fps=10) as writer:
+    anim.save('./animation_moviepy.mp4', writer=writer)
+
+
 plt.show()
 ##animation##
 # FFwriter = animation.FFMpegWriter(fps=10)

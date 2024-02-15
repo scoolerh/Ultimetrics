@@ -45,4 +45,4 @@ def singlePLayerAnimate(data) :
 
 
 
-singlePLayerAnimate("./smoothData1.csv")
+singlePLayerAnimate("./animation/smoothData1.csv")
