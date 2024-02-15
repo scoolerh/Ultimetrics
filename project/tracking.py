@@ -193,7 +193,7 @@ for _ in range(14):
     
     kalman.measurementMatrix = np.array([[1, 0, 0, 0],
                                          [0, 1, 0, 0]], dtype=np.float32)
-    
+     
     kalman.processNoiseCov = np.array([[1, 0, 0, 0],
                                        [0, 1, 0, 0],
                                        [0, 0, 1, 0],
@@ -302,8 +302,8 @@ while cap.isOpened():
                 # Get the corrected position
                 corrected_position = kalmanFilters[i].statePost
                 # Use the corrected position for further processing or visualization
-                bbox[0]= kalmanFilters[i].statePost[0] - bbox[2] / 2
-                bbox[1]= kalmanFilters[i].statePost[1] - bbox[3] / 2
+                bbox[0]= corrected_position[0] - bbox[2] / 2
+                bbox[1]= corrected_position[1] - bbox[3] / 2
                 
 
 
