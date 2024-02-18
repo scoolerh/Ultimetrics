@@ -23,7 +23,7 @@ playerColors = open("./playercolors.csv")
 playerDataReader = csv.reader(playerData)
 playerColorReader = csv.reader(playerColors)
 
-header = next(playerDataReader)
+header = next(playerDataReader, False)
 #the number of players is (1/2)(x-1), where x is the length of the header
 numPlayers = int((.5)*(len(header)))
 #numPlayers = 14
