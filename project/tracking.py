@@ -5,6 +5,9 @@ import numpy as np
 from detection import detect
 import math
 
+player_bounding_boxes = None
+playerMultiTracker = None
+kalmanFilters = None
 
 # Converts pixel coordinates to field coordinates in yards from top left
 # Inputs:
@@ -114,6 +117,9 @@ def getMiddleCoords(box):
 
 
 def main():
+    global player_bounding_boxes
+    global playerMultiTracker
+    global kalmanFilters
 
     # Name of mp4 with frisbee film
     file_name = 'frisbee.mp4'
