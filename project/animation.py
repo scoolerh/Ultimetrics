@@ -96,7 +96,7 @@ anim = animation.FuncAnimation(fig, update, frames=range(1,numFrames), repeat=Fa
 # anim.save("./animation_moviepy.mp4")
 # print('pausing')
 writer = animation.FFMpegWriter(
-    fps=8, metadata=dict(artist='Conor_And_Taylor'), bitrate=800)
+     fps=8, metadata=dict(artist='Conor_And_Taylor'), bitrate=800)
 anim.save("frisbeeMovie.mp4", writer=writer)
 plt.show()
 ##animation##
