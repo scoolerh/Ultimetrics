@@ -75,7 +75,7 @@ for i in range(numPlayers) :
 
 #how to plot a single moment
 def update(frame):
-    nextData = next(playerDataReader)
+    nextData = next(playerDataReader, False)
     
     if (nextData) :
         #update each player
@@ -98,7 +98,7 @@ anim = animation.FuncAnimation(fig, update, frames=range(1,numFrames), repeat=Fa
 writer = animation.FFMpegWriter(
      fps=8, metadata=dict(artist='Conor_And_Taylor'), bitrate=800)
 anim.save("frisbeeMovie.mp4", writer=writer)
-plt.show()
+#plt.show()
 ##animation##
 # FFwriter = animation.FFMpegWriter(fps=10)
 # output = open('./animation.mp4', 'w')
