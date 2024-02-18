@@ -17,8 +17,6 @@ f = open("playercoordinates.csv", "w", newline='')
 csvWriter = csv.writer(f, delimiter=',')
 colors = open("playercolors.csv", "w", newline='')
 colorWriter = csv.writer(colors, delimiter=',')
-teams = open("teams.csv", "w", newline='')
-teamWriter = csv.writer(teams, delimiter=',')
 
 # ================= MATH CONVERSION SETUP ==========================================
 
@@ -114,9 +112,9 @@ for j in range(4):
     cornerBbox = cv.selectROI('Corner MultiTracker', img, False, printNotice=False)
     cornerBboxes.append(cornerBbox)
     drawBox(img,cornerBbox) """
-#cornerBboxes = [(1189, 676, 11, 15), (0, 1739, 26, 30), (3513, 1662, 27, 37), (2294, 676, 21, 17)]
+cornerBboxes = [(1189, 676, 11, 15), (0, 1739, 26, 30), (3513, 1662, 27, 37), (2294, 676, 21, 17)]
 # for han: 
-cornerBboxes = [(1307, 256, 22, 25), (22, 1535, 27, 30), (3580, 1577, 36, 50), (2150, 260, 33, 27)]
+# cornerBboxes = [(1307, 256, 22, 25), (22, 1535, 27, 30), (3580, 1577, 36, 50), (2150, 260, 33, 27)]
 
 # initialize corner multiTracker
 for bbox in cornerBboxes:
@@ -154,43 +152,43 @@ def detectionSelection():
 
 playerBboxes = detectionSelection()
 
+# add player trackers to the multitracker
+for bbox in playerBboxes:
+    playerBoxColors.append(randomColor())
+    tracker = cv.legacy.TrackerCSRT_create()
+    playerMultiTracker.add(tracker, img, bbox)
+
 # write the boxes on the image 
-i = 0
-for box in playerBboxes:
-    i += 1
+for i, box in enumerate(playerBboxes):
     p1 = (int(box[0]), int(box[1]))
     p2 = (int(box[0] + box[2]), int(box[1] + box[3]))
-    color = randomColor()
-    playerBoxColors.append(color)
-    (w, h), _ = cv.getTextSize(str(i), cv.FONT_HERSHEY_SIMPLEX, 0.6, 2)
-    cv.rectangle(img, p1, p2, color, 2, 1)
-    cv.rectangle(img, (int(box[0]), int(box[1])-20), (int(box[0])+w+10, int(box[1])), color, -1)
-    cv.putText(img, str(i), (int(box[0])+5, int(box[1])-5), cv.FONT_HERSHEY_SIMPLEX, 0.6, (0,0,0), 2)
+    cv.rectangle(img, p1, p2, playerBoxColors[i], 2, 1)
 
-print("Detection complete: " + str(len(playerBboxes)) + " players found. ----------------------------------------------------------------")
+playersDetected = len(playerBboxes)
+print("Detection complete: " + str(playersDetected) + " players found. ---------------------------------------------------------")
 
 # have user select any players that were not found by object detection 
 while len(playerBboxes) < 14:
-    img = cv.resize(img, (1200, 900))
+    # img = cv.resize(img, (1200, 900))
     bbox = cv.selectROI('Select any unmarked players.', img, False, printNotice=False)
     playerBboxes.append(bbox)
-    color = drawBox(img,bbox)
+
+    tracker = cv.legacy.TrackerCSRT_create()
+    playerMultiTracker.add(tracker, img, bbox)
+
+    newColor = randomColor()
+    playerBoxColors.append(newColor)
+    p1 = (int(bbox[0]), int(bbox[1]))
+    p2 = (int(bbox[0] + bbox[2]), int(bbox[1] + bbox[3]))
+    cv.rectangle(img, p1, p2, newColor, 2, 1)
     print("Player found ------------------------------------------------------------------")
-    playerBoxColors.append(color)
 
 cv.destroyWindow('Select any unmarked players.')
 playersDetected = len(playerBboxes)
 print("HITL complete: " + str(playersDetected) + " players found. --------------------------------------------------------")
 
-# add player trackers to the multitracker
-for i in range(playersDetected - 1, len(playerBboxes)):
-    bbox = playerBboxes[i]
-    tracker = cv.legacy.TrackerCSRT_create()
-    playerMultiTracker.add(tracker, img, bbox)
-
 colorWriter.writerows(playerBoxColors)
-#teamWriter.writerows(playerTeams)
-print("Beginning tracking -----------------------------------------------------------------------------------")
+print("Beginning tracking -------------------------------------------------------------------------")
 
 # ==================== PLAYER/CORNER TRACKING ======================================
 kalmanFilters = []
@@ -370,41 +368,38 @@ while cap.isOpened():
                     kalman.statePost = np.zeros((4, 1), dtype=np.float32)
                     kalmanFilters.append(kalman)
 
-        else:
-            # Loop through all players
-            for i, bbox in enumerate(playerBboxes):
-                # Get the middle coordinates of the bounding box
-                xCoord = bbox[0] + bbox[2] / 2
-                yCoord = bbox[1] + bbox[3] / 2
-                measurement = np.array([[xCoord], [yCoord]], dtype=np.float32)
+        # else:
+        #     # Loop through all players
+        #     for i, bbox in enumerate(playerBboxes):
+        #         # Get the middle coordinates of the bounding box
+        #         xCoord = bbox[0] + bbox[2] / 2
+        #         yCoord = bbox[1] + bbox[3] / 2
+        #         measurement = np.array([[xCoord], [yCoord]], dtype=np.float32)
 
-                # Predict the next state using Kalman filter
-                prediction = kalmanFilters[i].predict()
+                # # Predict the next state using Kalman filter
+                # prediction = kalmanFilters[i].predict()
 
-                # Update the predicted position using information from the CSRT tracker
-                kalmanFilters[i].statePre[0] = xCoord
-                kalmanFilters[i].statePre[1] = yCoord
+                # # Update the predicted position using information from the CSRT tracker
+                # kalmanFilters[i].statePre[0] = xCoord
+                # kalmanFilters[i].statePre[1] = yCoord
 
                 # # Correct the Kalman filter using the measured position
                 # kalmanFilters[i].correct(measurement)
 
-                # Get the corrected position
-                corrected_position = kalmanFilters[i].statePost
-                # Use the corrected position for further processing or visualization
-                bbox[0]= corrected_position[0] - bbox[2] / 2
-                bbox[1]= corrected_position[1] - bbox[3] / 2
+                # # Get the corrected position
+                # corrected_position = kalmanFilters[i].statePost
+                # # Use the corrected position for further processing or visualization
+                # bbox[0]= corrected_position[0] - bbox[2] / 2
+                # bbox[1]= corrected_position[1] - bbox[3] / 2
                 
 
-                
+
     csvLine = []
 
     for i, newPlayerBox in enumerate(playerBboxes):
         p1 = (int(newPlayerBox[0]), int(newPlayerBox[1]))
         p2 = (int(newPlayerBox[0] + newPlayerBox[2]), int(newPlayerBox[1] + newPlayerBox[3]))
-        (w, h), _ = cv.getTextSize(str(i+1), cv.FONT_HERSHEY_SIMPLEX, 0.6, 1)
         cv.rectangle(img, p1, p2, playerBoxColors[i], 2, 1)
-        img = cv.rectangle(img, (int(newPlayerBox[0]), int(newPlayerBox[1])-20), (int(newPlayerBox[0])+w+10, int(newPlayerBox[1])), playerBoxColors[i], -1)
-        img = cv.putText(img, str(i + 1), (int(newPlayerBox[0]), int(newPlayerBox[1])-5), cv.FONT_HERSHEY_SIMPLEX, 0.6, (0,0,0), 2)
         if not newPlayerBox[0] > 0 :
             csvLine.append(-1)
             csvLine.append(-1)
@@ -420,8 +415,8 @@ while cap.isOpened():
                     
     csvWriter.writerow(csvLine)
 
-    img = cv.resize(img, (1200, 900))
-    cv.imshow("Tracking in progress", img)
+    # img = cv.resize(img, (1200, 900))
+    cv.imshow("Corner MultiTracker", img)
 
     # Exit if ESC pressed
     k = cv.waitKey(1) & 0xff
@@ -434,7 +429,7 @@ while cap.isOpened():
         if not success:
             break
 
-print("Tracking complete. -----------------------------------------------------------------------------------")
+print("Tracking complete. -----------------------------------------------------------------------")
 
 # ======================= CLEANUP ==================================================
 
