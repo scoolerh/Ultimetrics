@@ -23,7 +23,7 @@ playerColors = open("./playercolors.csv")
 playerDataReader = csv.reader(playerData)
 playerColorReader = csv.reader(playerColors)
 
-header = next(playerDataReader)
+header = next(playerDataReader, False)
 #the number of players is (1/2)(x-1), where x is the length of the header
 numPlayers = int((.5)*(len(header)))
 #numPlayers = 14
@@ -75,7 +75,7 @@ for i in range(numPlayers) :
 
 #how to plot a single moment
 def update(frame):
-    nextData = next(playerDataReader)
+    nextData = next(playerDataReader, False)
     
     if (nextData) :
         #update each player
@@ -96,9 +96,9 @@ anim = animation.FuncAnimation(fig, update, frames=range(1,numFrames), repeat=Fa
 # anim.save("./animation_moviepy.mp4")
 # print('pausing')
 writer = animation.FFMpegWriter(
-    fps=8, metadata=dict(artist='Conor_And_Taylor'), bitrate=800)
+     fps=8, metadata=dict(artist='Conor_And_Taylor'), bitrate=800)
 anim.save("frisbeeMovie.mp4", writer=writer)
-plt.show()
+#plt.show()
 ##animation##
 # FFwriter = animation.FFMpegWriter(fps=10)
 # output = open('./animation.mp4', 'w')
