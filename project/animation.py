@@ -19,9 +19,9 @@ numFrames = 0
 with open("./playercoordinates.csv") as f:
     numFrames = sum(1 for line in f)
 playerData = open("./playercoordinates.csv")
-playerColors = open("./playercolors.csv")
 playerDataReader = csv.reader(playerData)
-playerColorReader = csv.reader(playerColors)
+teamData = open("./teams.csv")
+teamDataReader = csv.reader(teamData)
 
 header = next(playerDataReader)
 #the number of players is (1/2)(x-1), where x is the length of the header
@@ -62,15 +62,15 @@ def generate_field() :
 # plot static graph
 fig, ax = generate_field()
 
-def rgb_to_hex(r, g, b):
-    return '#{:02x}{:02x}{:02x}'.format(r, g, b)
-
 #we want a line for each player, marked as a red o
 playerList = []
 for i in range(numPlayers) :
-    color = next(playerColorReader)
-    hex_color = rgb_to_hex(int(color[0]), int(color[1]), int(color[2]))
-    ln, = ax.plot([], [], color=hex_color, marker='o')
+    team = next(teamData)
+    if team == 1: 
+        color = '#FF0036'
+    else: 
+        color = '#467EFF'
+    ln, = ax.plot([], [], color=color, marker='o')
     playerList.append(ln)
 
 #how to plot a single moment
