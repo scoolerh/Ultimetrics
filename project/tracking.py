@@ -132,6 +132,10 @@ def main():
     # img: First frame from the video
     ret, img = cap.read()
 
+    cv.namedWindow("Tracking...", cv.WINDOW_NORMAL)
+    cv.namedWindow("Select any unmarked players.", cv.WINDOW_NORMAL)
+    
+
     # Set filename of csv where we output computed player coordinates
     coordinates_filename = 'playercoordinates.csv'
     # Open coordinates file
@@ -469,7 +473,7 @@ def main():
         coordinates_file_writer.writerow(csvLine)   
 
         # img = cv.resize(img, (1200, 900))
-        cv.imshow("Corner MultiTracker", img)
+        cv.imshow("Tracking...", img)
 
         # Exit if ESC pressed
         k = cv.waitKey(1) & 0xff
