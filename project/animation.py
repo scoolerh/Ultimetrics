@@ -9,7 +9,6 @@ warnings.filterwarnings("ignore")
 #from matplotlib.animation import FuncAnimation
 # import ffmpeg
 
-
 #NOTE: file format
 #file that we're writing in -- format is one column of frame numbers (1, 2, 3, 4, 5), and then 
 #pairs of columns representing the number of players. The first 
@@ -23,10 +22,8 @@ playerDataReader = csv.reader(playerData)
 teamData = open("./teams.csv")
 teamDataReader = csv.reader(teamData)
 
-header = next(playerDataReader)
-#the number of players is (1/2)(x-1), where x is the length of the header
+header = next(playerDataReader, False)
 numPlayers = int((.5)*(len(header)))
-#numPlayers = 14
 
 #initialize some global variables, we want lists of the x and y data
 playerVal = 0
@@ -75,7 +72,7 @@ for i in range(numPlayers) :
 
 #how to plot a single moment
 def update(frame):
-    nextData = next(playerDataReader)
+    nextData = next(playerDataReader, False)
     
     if (nextData) :
         #update each player
@@ -96,9 +93,9 @@ anim = animation.FuncAnimation(fig, update, frames=range(1,numFrames), repeat=Fa
 # anim.save("./animation_moviepy.mp4")
 # print('pausing')
 writer = animation.FFMpegWriter(
-    fps=8, metadata=dict(artist='Conor_And_Taylor'), bitrate=800)
+     fps=8, metadata=dict(artist='Conor_And_Taylor'), bitrate=800)
 anim.save("frisbeeMovie.mp4", writer=writer)
-plt.show()
+#plt.show()
 ##animation##
 # FFwriter = animation.FFMpegWriter(fps=10)
 # output = open('./animation.mp4', 'w')
