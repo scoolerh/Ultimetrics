@@ -1,4 +1,5 @@
 import cv2 as cv
+import random
 import csv
 import numpy as np
 from detection import detect
@@ -109,7 +110,6 @@ def getBottomMiddleCoords(box):
     xCoord = (box[0]+(box[2]/2))
     yCoord = (box[1]+box[3])
     return [xCoord, yCoord]
-
 def getMiddleCoords(box):
     xCoord = (box[0]+(box[2]/2))
     yCoord = (box[1]-(box[3]/2))
@@ -151,16 +151,6 @@ def main():
     colors_file_writer = csv.writer(colors_file, delimiter=',')
 
     # ================= MATH CONVERSION SETUP ==========================================
-
-    # HOW IS THIS USED????
-
-    # DONT THINK WE NEED THIS
-    # # Instantiate corner trackers
-    # cornerTrackerList = []
-    # cornerNames = ["top left", "bottom left", "bottom right", "top right"]
-    # for i in range(4): 
-    #     tracker = cv.legacy.TrackerCSRT_create()
-    #     cornerTrackerList.append(tracker)
 
     # lists for storing information about players and corners 
     player_bounding_boxes = []
