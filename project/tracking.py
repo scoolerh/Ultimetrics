@@ -1,4 +1,5 @@
 import cv2 as cv
+import random
 import csv
 import numpy as np
 from detection import detect
