@@ -233,7 +233,7 @@ def main():
 
                     old_locations_dif = []
                     for old_bbox in player_bounding_boxes:
-                        if old_bbox != None:
+                        if (len(old_bbox) != 0):
                             old_locations_dif.append(math.dist(getBottomMiddleCoords(old_bbox), detected_player_location))
                         else:
                             old_locations_dif.append(sys.maxint)
@@ -242,7 +242,7 @@ def main():
                         print("replacement")
                         closestIndex = np.argmin(newLocationsDif)
                         updatedplayer_bounding_boxes[closestIndex] = detected_player
-                        player_bounding_boxes[closestIndex] = None
+                        player_bounding_boxes[closestIndex] = []
                     else:
                         updatedplayer_bounding_boxes.append(detected_player)
                 
@@ -262,6 +262,9 @@ def main():
                 newLocationsDif = []
                 for newBbox in new_player_bounding_boxes:
                     newLocationsDif.append(math.dist(getMiddleCoords(newBbox), oldLocation))
+                if len(newLocationsDif) == 0:
+                    print("what")
+                    print(player_bounding_boxes)
                 closestIndex = np.argmin(newLocationsDif)
 
                 if closestIndex not in detected_player_indices_to_delete:
@@ -382,7 +385,7 @@ def main():
         if k == 27 : break
         
         # check for routine redetection
-        if counter >= 16:
+        if counter >= 8:
             redetectPlayers()
             counter = 0
 
