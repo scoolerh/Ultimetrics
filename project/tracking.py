@@ -109,9 +109,9 @@ def main():
     player_bounding_boxes = []
     cornerNames = ["top left", "bottom left", "bottom right", "top right"]
     # These are the coordinates of the bounding boxes for the specific test frisbee film we are using (need to be changed depending on the video that is being used)
-    #corner_bounding_boxes = [(1189, 676, 11, 15), (0, 1739, 26, 30), (3513, 1662, 27, 37), (2294, 676, 21, 17)]
+    corner_bounding_boxes = [(1189, 676, 11, 15), (0, 1739, 26, 30), (3513, 1662, 27, 37), (2294, 676, 21, 17)]
     # for han: 
-    corner_bounding_boxes = [(1307, 256, 22, 25), (22, 1535, 27, 30), (3580, 1577, 36, 50), (2150, 260, 33, 27)]
+    # corner_bounding_boxes = [(1307, 256, 22, 25), (22, 1535, 27, 30), (3580, 1577, 36, 50), (2150, 260, 33, 27)]
 
     # Create a multi tracker for the corners and players 
     corner_multi_tracker, M, source, destination = instantiateCorners(corner_bounding_boxes, img)
@@ -145,11 +145,11 @@ def main():
 
     # have user select any players that were not found by object detection 
     for i in range(len(player_bounding_boxes), 14):
+        print("Select player " + str(i))
         # img = cv.resize(img, (1200, 900))
-        bbox = cv.selectROI('Select any unmarked players.', img, False, printNotice=False)
-        if not (bbox[2] == 0 or bbox[3] == 0):
-            player_bounding_boxes.append(bbox)
         bbox = cv.selectROI('Draw a box around any players that don\'t currently have a box.', img, False, printNotice=False)
+        while (bbox[2] == 0 or bbox[3] == 0):
+            bbox = cv.selectROI('Draw a box around any players that don\'t currently have a box.', img, False, printNotice=False)
         player_bounding_boxes.append(bbox)
 
         tracker = cv.legacy.TrackerCSRT_create()
@@ -163,18 +163,18 @@ def main():
         cv.putText(img, str(i+1), (int(bbox[0])+5, int(bbox[1])-5), cv.FONT_HERSHEY_SIMPLEX, 0.6, (255,255,255), 2)
     
     cv.destroyWindow('Draw a box around any players that don\'t currently have a box.')
-    cv.imshow('Identify teams in the terminal.', img)
-    cv.waitKey(1000)
+    # cv.imshow('Identify teams in the terminal.', img)
+    # cv.waitKey(1000)
 
-    teams = []
-    for i in range(1, 15): 
-        team = input("What team is player " + str(i) + " on? ")     
-        while team != "1" and team != "2": 
-            team = input("Please enter either 1 or 2. ")
-        teams.append(team)
+    # teams = []
+    # for i in range(1, 15): 
+    #     team = input("What team is player " + str(i) + " on? ")     
+    #     while team != "1" and team != "2": 
+    #         team = input("Please enter either 1 or 2. ")
+    #     teams.append(team)
 
-    cv.destroyWindow('Identify teams in the terminal.')
-    teams_file_writer.writerows(teams)
+    # cv.destroyWindow('Identify teams in the terminal.')
+    # teams_file_writer.writerows(teams)
     print("Beginning tracking -------------------------------------------------------------------------")
 
     # ==================== PLAYER/CORNER TRACKING ======================================
@@ -285,7 +285,7 @@ def main():
                     player_bounding_boxes[bbox_index_to_delete] = detectedPlayer
                 else:
                     np.append(player_bounding_boxes, detectedPlayer)
-                    player_box_colors.append(randomColor())
+                    # player_box_colors.append(randomColor())
                     tracker = cv.legacy.TrackerCSRT_create()
                     playerMultiTracker.add(tracker, img, detectedPlayer)
             if need_new_multitracker:
@@ -426,7 +426,7 @@ def main():
         if k == 27 : break
         
         # check for routine redetection
-        if counter >= 20:
+        if counter >= 16:
             redetectPlayers()
             counter = 0
             # player_bounding_boxes = detectionSelection()
@@ -439,7 +439,7 @@ def main():
             #     playerMultiTracker.add(tracker, img, bbox)
 
         # grab every 10th frame to speed up testing
-        for i in range(10):
+        for i in range(4):
             success, img = cap.read()
             counter += 1
             if not success:
