@@ -253,6 +253,7 @@ def main():
         else:
             possibleDoubles = []
             detected_player_indices_to_delete = []
+            # detected_player_indices_to_delete_matching_index = []
             for index, trackedPlayer in enumerate(player_bounding_boxes):
                 oldLocation = getMiddleCoords(trackedPlayer)
 
@@ -260,14 +261,17 @@ def main():
                 for newBbox in new_player_bounding_boxes:
                     newLocationsDif.append(math.dist(getMiddleCoords(newBbox), oldLocation))
                 if len(newLocationsDif) == 0:
-                    print("what")
+                    print("what???")
                     print(player_bounding_boxes)
+                closestVal = min(newLocationsDif)
                 closestIndex = np.argmin(newLocationsDif)
 
                 if closestIndex not in detected_player_indices_to_delete:
                     detected_player_indices_to_delete.append(closestIndex)
+                    # detected_player_indices_to_delete_matching_index([index, closestVal])
                 else:
                     # possible double
+                    # if closestVal < detected_player_indices_to_delete_matching_index
                     possibleDoubles.append(index)
 
             detected_player_indices_to_delete.sort(reverse=True)
