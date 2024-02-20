@@ -4,10 +4,11 @@ import csv
 import numpy as np
 from detection import detect
 import math
+import sys
 
-player_bounding_boxes = None
+player_bounding_boxes = []
 playerMultiTracker = None
-kalmanFilters = None
+kalmanFilters = []
 
 # Converts pixel coordinates to field coordinates in yards from top left
 # Inputs:
@@ -226,17 +227,18 @@ def main():
     while len(player_bounding_boxes) < 14:
         # img = cv.resize(img, (1200, 900))
         bbox = cv.selectROI('Select any unmarked players.', img, False, printNotice=False)
-        player_bounding_boxes.append(bbox)
+        if not (bbox[2] == 0 or bbox[3] == 0):
+            player_bounding_boxes.append(bbox)
 
-        tracker = cv.legacy.TrackerCSRT_create()
-        playerMultiTracker.add(tracker, img, bbox)
+            tracker = cv.legacy.TrackerCSRT_create()
+            playerMultiTracker.add(tracker, img, bbox)
 
-        newColor = randomColor()
-        player_box_colors.append(newColor)
-        p1 = (int(bbox[0]), int(bbox[1]))
-        p2 = (int(bbox[0] + bbox[2]), int(bbox[1] + bbox[3]))
-        cv.rectangle(img, p1, p2, newColor, 2, 1)
-        print("Player found ------------------------------------------------------------------")
+            newColor = randomColor()
+            player_box_colors.append(newColor)
+            p1 = (int(bbox[0]), int(bbox[1]))
+            p2 = (int(bbox[0] + bbox[2]), int(bbox[1] + bbox[3]))
+            cv.rectangle(img, p1, p2, newColor, 2, 1)
+            print("Player found ------------------------------------------------------------------")
 
     cv.destroyWindow('Select any unmarked players.')
     playersDetected = len(player_bounding_boxes)
@@ -272,86 +274,116 @@ def main():
         kalmanFilters.append(kalman)
 
     def redetectPlayers(redetectAll=False):
-            global player_bounding_boxes
-            global playerMultiTracker
-            global kalmanFilters
-            new_player_bounding_boxes = detectionSelection()
-            # playerColors = []
+        global player_bounding_boxes
+        global playerMultiTracker
+        global kalmanFilters
+        new_player_bounding_boxes = detectionSelection()
+        # playerColors = []
 
-            numDetectedPlayers = len(new_player_bounding_boxes)
-            numTrackedPlayers = len(player_bounding_boxes)
-                
-            if redetectAll:
-                # originally numTrackedPlayers < numDetectedPlayers
-                # trust detection, but preserve unique IDs
+        numDetectedPlayers = len(new_player_bounding_boxes)
+        numTrackedPlayers = len(player_bounding_boxes)
+        print(numDetectedPlayers)
+        print(numTrackedPlayers)
 
-                updatedplayer_bounding_boxes = [None] * max(numDetectedPlayers, numTrackedPlayers)
+        for newPlayerBox in new_player_bounding_boxes:
+            p1 = (int(newPlayerBox[0]), int(newPlayerBox[1]))
+            p2 = (int(newPlayerBox[0] + newPlayerBox[2]), int(newPlayerBox[1] + newPlayerBox[3]))
+            cv.rectangle(img, p1, p2, (255,0,0), 2, 1)
+            
+        if redetectAll:
+            # use detection, but preserve unique IDs
+            updatedplayer_bounding_boxes = [None] * numTrackedPlayers
+            if numDetectedPlayers < numTrackedPlayers:
+                updatedplayer_bounding_boxes = new_player_bounding_boxes
+            else:
+                for index, detected_player in enumerate(new_player_bounding_boxes):
+                    detected_player_location = getBottomMiddleCoords(detected_player)
 
-                lastIndex = 0
-                numPlayersMatched = 0
-                for index, trackedPlayer in enumerate(player_bounding_boxes):
-                    if numPlayersMatched >= numDetectedPlayers:
-                        # just add tracked player regularly to updatedplayer_bounding_boxes
-                        updatedplayer_bounding_boxes[index] = player_bounding_boxes[index]
-                    else:
-                        oldLocation = getBottomMiddleCoords(trackedPlayer)
-
-                        newLocationsDif = []
-                        for newBbox in new_player_bounding_boxes:
-                            newLocationsDif.append(math.dist(getBottomMiddleCoords(newBbox), oldLocation))
+                    old_locations_dif = []
+                    for old_bbox in player_bounding_boxes:
+                        if old_bbox != None:
+                            old_locations_dif.append(math.dist(getBottomMiddleCoords(old_bbox), detected_player_location))
+                        else:
+                            old_locations_dif.append(sys.maxint)
+                    smallest_dif = min(newLocationsDif)
+                    if smallest_dif != sys.maxint:
+                        print("replacement")
                         closestIndex = np.argmin(newLocationsDif)
-                        updatedplayer_bounding_boxes[index] = new_player_bounding_boxes[closestIndex]
-                        numPlayersMatched += 1
-                        new_player_bounding_boxes[closestIndex] = [999999999,999999999, 1, 1]
-
-                    lastIndex = index
-                lastIndex += 1
-                while lastIndex < numDetectedPlayers:
-                    # add all of the redetects that don't correspond to a already tracked player
-                    # happens if numdetectedplayers > numtrackedplayers
-                    toAdd = None
-                    for ind, newBox in enumerate(new_player_bounding_boxes):
-                        if newBox[0] != 999999999:
-                            toAdd = newBox
-                            new_player_bounding_boxes[ind] = [999999999,999999999, 1, 1]
-                            break
-                    updatedplayer_bounding_boxes[lastIndex] = toAdd
-                    player_box_colors.append(randomColor())
-                    lastIndex += 1
+                        updatedplayer_bounding_boxes[closestIndex] = detected_player
+                        player_bounding_boxes[closestIndex] = None
+                    else:
+                        updatedplayer_bounding_boxes.append(detected_player)
                 
+            player_bounding_boxes = updatedplayer_bounding_boxes
 
-                player_bounding_boxes = updatedplayer_bounding_boxes
+            playerMultiTracker = cv.legacy.MultiTracker_create()
 
+            for bbox in player_bounding_boxes:
+                tracker = cv.legacy.TrackerCSRT_create()
+                playerMultiTracker.add(tracker, img, bbox)
+        else:
+            possibleDoubles = []
+            detected_player_indices_to_delete = []
+            for index, trackedPlayer in enumerate(player_bounding_boxes):
+                oldLocation = getMiddleCoords(trackedPlayer)
+
+                newLocationsDif = []
+                for newBbox in new_player_bounding_boxes:
+                    newLocationsDif.append(math.dist(getMiddleCoords(newBbox), oldLocation))
+                closestIndex = np.argmin(newLocationsDif)
+
+                if closestIndex not in detected_player_indices_to_delete:
+                    detected_player_indices_to_delete.append(closestIndex)
+                else:
+                    # possible double
+                    possibleDoubles.append(index)
+
+            detected_player_indices_to_delete.sort(reverse=True)
+            for index_to_delete in detected_player_indices_to_delete:
+                new_player_bounding_boxes.pop(index_to_delete)
+            need_new_multitracker = False
+            for detectedPlayer in new_player_bounding_boxes:
+                if len(possibleDoubles) > 0:
+                    need_new_multitracker = True
+                    distinct_player_location = getMiddleCoords(detectedPlayer)
+                    locationsDif = []
+                    for double_pair in possibleDoubles:
+                        locationsDif.append(math.dist(getMiddleCoords(player_bounding_boxes[double_pair]), distinct_player_location))
+                    
+                    bbox_index_to_delete = possibleDoubles[np.argmin(locationsDif)]
+                    possibleDoubles.pop(np.argmin(locationsDif))
+
+                    player_bounding_boxes[bbox_index_to_delete] = detectedPlayer
+                else:
+                    np.append(player_bounding_boxes, detectedPlayer)
+                    player_box_colors.append(randomColor())
+                    tracker = cv.legacy.TrackerCSRT_create()
+                    playerMultiTracker.add(tracker, img, detectedPlayer)
+            if need_new_multitracker:
                 playerMultiTracker = cv.legacy.MultiTracker_create()
-
                 for bbox in player_bounding_boxes:
                     tracker = cv.legacy.TrackerCSRT_create()
                     playerMultiTracker.add(tracker, img, bbox)
-
-            elif numTrackedPlayers >= numDetectedPlayers:
-                # trust tracking, don't use detection
-                # check if one player stole box from another player
-                pass
-
-            # Update Kalman filters array with new filters if necessary
-            if len(kalmanFilters) != len(player_bounding_boxes):
-                kalmanFilters = []
-                for _ in range(len(player_bounding_boxes)):
-                    kalman = cv.KalmanFilter(4, 2)  # 4 states (x, y, dx, dy), 2 measurements (x, y)
-                    kalman.transitionMatrix = np.array([[1, 0, 1, 0],
-                                                        [0, 1, 0, 1],
-                                                        [0, 0, 1, 0],
-                                                        [0, 0, 0, 1]], dtype=np.float32)
-                    kalman.measurementMatrix = np.array([[1, 0, 0, 0],
-                                                        [0, 1, 0, 0]], dtype=np.float32)
-                    kalman.processNoiseCov = np.array([[1, 0, 0, 0],
-                                                    [0, 1, 0, 0],
+            
+        # Update Kalman filters array with new filters if necessary
+        if len(kalmanFilters) != len(player_bounding_boxes):
+            kalmanFilters = []
+            for _ in range(len(player_bounding_boxes)):
+                kalman = cv.KalmanFilter(4, 2)  # 4 states (x, y, dx, dy), 2 measurements (x, y)
+                kalman.transitionMatrix = np.array([[1, 0, 1, 0],
+                                                    [0, 1, 0, 1],
                                                     [0, 0, 1, 0],
-                                                    [0, 0, 0, 1]], dtype=np.float32) * 0.03
-                    kalman.measurementNoiseCov = np.array([[1, 0],
-                                                            [0, 1]], dtype=np.float32) * 0.1
-                    kalman.statePost = np.zeros((4, 1), dtype=np.float32)
-                    kalmanFilters.append(kalman)
+                                                    [0, 0, 0, 1]], dtype=np.float32)
+                kalman.measurementMatrix = np.array([[1, 0, 0, 0],
+                                                    [0, 1, 0, 0]], dtype=np.float32)
+                kalman.processNoiseCov = np.array([[1, 0, 0, 0],
+                                                [0, 1, 0, 0],
+                                                [0, 0, 1, 0],
+                                                [0, 0, 0, 1]], dtype=np.float32) * 0.03
+                kalman.measurementNoiseCov = np.array([[1, 0],
+                                                        [0, 1]], dtype=np.float32) * 0.1
+                kalman.statePost = np.zeros((4, 1), dtype=np.float32)
+                kalmanFilters.append(kalman)
 
 
     counter = 0
@@ -384,46 +416,34 @@ def main():
 
         # ==================== PLAYER TRACKING ======================================
         # re detect players every x frames
-        if counter >= 30:
+        # update tracking for players
+        success, updated_player_bounding_boxes = playerMultiTracker.update(img)
+
+        # If tracking was lost, run detection again 
+        if not success:
+            print("Tracking was lost!")
             redetectPlayers(redetectAll=True)
-            counter = 0
-            # player_bounding_boxes = detectionSelection()
-            # player_box_colors = []
-            # playerMultiTracker = cv.legacy.MultiTracker_create()
-
-            # for bbox in player_bounding_boxes:
-            #     player_box_colors.append(randomColor())
-            #     tracker = cv.legacy.TrackerCSRT_create()
-            #     playerMultiTracker.add(tracker, img, bbox)
-        else:
-            # update tracking for players
-            success, player_bounding_boxes = playerMultiTracker.update(img)
-
-            # If tracking was lost, run detection again 
-            if (not success):
-                print("Player was lost!")
-                redetectPlayers(redetectAll=True)
-                counter = 0
-                
-                # Update Kalman filters array with new filters if necessary
-                if len(kalmanFilters) != len(player_bounding_boxes):
-                    kalmanFilters = []
-                    for _ in range(len(player_bounding_boxes)):
-                        kalman = cv.KalmanFilter(4, 2)  # 4 states (x, y, dx, dy), 2 measurements (x, y)
-                        kalman.transitionMatrix = np.array([[1, 0, 1, 0],
-                                                            [0, 1, 0, 1],
-                                                            [0, 0, 1, 0],
-                                                            [0, 0, 0, 1]], dtype=np.float32)
-                        kalman.measurementMatrix = np.array([[1, 0, 0, 0],
-                                                            [0, 1, 0, 0]], dtype=np.float32)
-                        kalman.processNoiseCov = np.array([[1, 0, 0, 0],
-                                                        [0, 1, 0, 0],
-                                                        [0, 0, 1, 0],
-                                                        [0, 0, 0, 1]], dtype=np.float32) * 0.03
-                        kalman.measurementNoiseCov = np.array([[1, 0],
-                                                                [0, 1]], dtype=np.float32) * 0.1
-                        kalman.statePost = np.zeros((4, 1), dtype=np.float32)
-                        kalmanFilters.append(kalman)
+            success, updated_player_bounding_boxes = playerMultiTracker.update(img)
+            
+            # Update Kalman filters array with new filters if necessary
+            # if len(kalmanFilters) != len(player_bounding_boxes):
+            #     kalmanFilters = []
+            #     for _ in range(len(player_bounding_boxes)):
+            #         kalman = cv.KalmanFilter(4, 2)  # 4 states (x, y, dx, dy), 2 measurements (x, y)
+            #         kalman.transitionMatrix = np.array([[1, 0, 1, 0],
+            #                                             [0, 1, 0, 1],
+            #                                             [0, 0, 1, 0],
+            #                                             [0, 0, 0, 1]], dtype=np.float32)
+            #         kalman.measurementMatrix = np.array([[1, 0, 0, 0],
+            #                                             [0, 1, 0, 0]], dtype=np.float32)
+            #         kalman.processNoiseCov = np.array([[1, 0, 0, 0],
+            #                                         [0, 1, 0, 0],
+            #                                         [0, 0, 1, 0],
+            #                                         [0, 0, 0, 1]], dtype=np.float32) * 0.03
+            #         kalman.measurementNoiseCov = np.array([[1, 0],
+            #                                                 [0, 1]], dtype=np.float32) * 0.1
+            #         kalman.statePost = np.zeros((4, 1), dtype=np.float32)
+            #         kalmanFilters.append(kalman)
 
             # else:
             #     # Loop through all players
@@ -448,8 +468,8 @@ def main():
                     # # Use the corrected position for further processing or visualization
                     # bbox[0]= corrected_position[0] - bbox[2] / 2
                     # bbox[1]= corrected_position[1] - bbox[3] / 2
-                    
-
+        
+        player_bounding_boxes = updated_player_bounding_boxes
 
         csvLine = []
 
@@ -479,6 +499,19 @@ def main():
         k = cv.waitKey(1) & 0xff
         if k == 27 : break
         
+        # check for routine redetection
+        if counter >= 20:
+            redetectPlayers()
+            counter = 0
+            # player_bounding_boxes = detectionSelection()
+            # player_box_colors = []
+            # playerMultiTracker = cv.legacy.MultiTracker_create()
+
+            # for bbox in player_bounding_boxes:
+            #     player_box_colors.append(randomColor())
+            #     tracker = cv.legacy.TrackerCSRT_create()
+            #     playerMultiTracker.add(tracker, img, bbox)
+
         # grab every 10th frame to speed up testing
         for i in range(4):
             success, img = cap.read()
