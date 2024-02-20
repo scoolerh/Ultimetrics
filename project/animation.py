@@ -9,7 +9,6 @@ warnings.filterwarnings("ignore")
 #from matplotlib.animation import FuncAnimation
 # import ffmpeg
 
-
 #NOTE: file format
 #file that we're writing in -- format is one column of frame numbers (1, 2, 3, 4, 5), and then 
 #pairs of columns representing the number of players. The first 
@@ -19,14 +18,12 @@ numFrames = 0
 with open("./playercoordinates.csv") as f:
     numFrames = sum(1 for line in f)
 playerData = open("./playercoordinates.csv")
-playerColors = open("./playercolors.csv")
 playerDataReader = csv.reader(playerData)
-playerColorReader = csv.reader(playerColors)
+teamData = open("./teams.csv")
+teamDataReader = csv.reader(teamData)
 
 header = next(playerDataReader, False)
-#the number of players is (1/2)(x-1), where x is the length of the header
 numPlayers = int((.5)*(len(header)))
-#numPlayers = 14
 
 #initialize some global variables, we want lists of the x and y data
 playerVal = 0
@@ -52,8 +49,8 @@ def generate_field() :
     plt.axis('off')
 
     #creating scatter plots for the players? Maybe something we want to do
-    ax.scatter([], [], c= 'blue', label = 'CUTrules', zorder=2)
-    ax.scatter([], [], c= 'red', label = 'Losing Team', zorder=2)
+    ax.scatter([], [], c= '#FF0036', label = 'Team 1', zorder=2)
+    ax.scatter([], [], c= '#467EFF', label = 'Team 2', zorder=2)
     # ax.scatter([], [], c='white' , label = 'Disc', zorder=2)
     ax.legend(loc='upper right')
 
@@ -62,15 +59,15 @@ def generate_field() :
 # plot static graph
 fig, ax = generate_field()
 
-def rgb_to_hex(r, g, b):
-    return '#{:02x}{:02x}{:02x}'.format(r, g, b)
-
 #we want a line for each player, marked as a red o
 playerList = []
 for i in range(numPlayers) :
-    color = next(playerColorReader)
-    hex_color = rgb_to_hex(int(color[0]), int(color[1]), int(color[2]))
-    ln, = ax.plot([], [], color=hex_color, marker='o')
+    team = next(teamData)
+    if team == "1\n": 
+        color = '#FF0036'
+    else: 
+        color = '#467EFF'
+    ln, = ax.plot([], [], color=color, marker='o')
     playerList.append(ln)
 
 #how to plot a single moment
@@ -93,11 +90,11 @@ def update(frame):
     return playerList,
 
 anim = animation.FuncAnimation(fig, update, frames=range(1,numFrames), repeat=False, interval=100)
-# anim.save("./animation_moviepy.mp4")
-# print('pausing')
 writer = animation.FFMpegWriter(
      fps=8, metadata=dict(artist='Conor_And_Taylor'), bitrate=800)
 anim.save("frisbeeMovie.mp4", writer=writer)
+print("Animation complete. ------------------------------------------------------------------------")
+
 #plt.show()
 ##animation##
 # FFwriter = animation.FFMpegWriter(fps=10)

@@ -14,6 +14,7 @@ setup:
 	@pip3 uninstall opencv-contrib-python
 	@pip3 uninstall opencv-python
 	@pip3 install yolov5
+	@pip3 install opencv-contrib-python==4.9.0.80
 
 # run whole program 
 run: 

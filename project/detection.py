@@ -43,8 +43,4 @@ def detect(image):
 
     categories = predictions[:, 5]
 
-    with open('player_detection.csv', 'w', newline='') as csvfile:
-        csvwriter = csv.writer(csvfile)
-        csvwriter.writerows(bboxes)
-
     return bboxes
