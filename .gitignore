@@ -1,5 +1,5 @@
 *.csv
 *.gif
 *.MP4
-
-__pycache__/
+project/__pycache__/
+*pyc

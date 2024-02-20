@@ -152,8 +152,8 @@ def main():
         bbox = cv.selectROI('Draw a box around any players that don\'t currently have a box.', img, False, printNotice=False)
         player_bounding_boxes.append(bbox)
 
-            tracker = cv.legacy.TrackerCSRT_create()
-            playerMultiTracker.add(tracker, img, bbox)
+        tracker = cv.legacy.TrackerCSRT_create()
+        playerMultiTracker.add(tracker, img, bbox)
 
         p1 = (int(bbox[0]), int(bbox[1]))
         p2 = (int(bbox[0] + bbox[2]), int(bbox[1] + bbox[3]))
@@ -204,10 +204,10 @@ def main():
         kalmanFilters.append(kalman)
 
     def redetectPlayers(redetectAll=False):
-            global player_bounding_boxes
-            global playerMultiTracker
-            global kalmanFilters
-            new_player_bounding_boxes = detectionSelection(img, source)
+        global player_bounding_boxes
+        global playerMultiTracker
+        global kalmanFilters
+        new_player_bounding_boxes = detectionSelection(img, source)
 
         numDetectedPlayers = len(new_player_bounding_boxes)
         numTrackedPlayers = len(player_bounding_boxes)
