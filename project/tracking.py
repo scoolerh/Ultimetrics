@@ -91,7 +91,8 @@ def main():
     ret, img = cap.read()
 
     cv.namedWindow("Tracking...", cv.WINDOW_NORMAL)
-    cv.namedWindow("Select any unmarked players.", cv.WINDOW_NORMAL)
+    cv.namedWindow("Identify teams in the terminal.", cv.WINDOW_NORMAL)
+    cv.namedWindow("Draw a box around any players that don\'t currently have a box.", cv.WINDOW_NORMAL)
     
     # create csv where we output computed player coordinates
     coordinates_filename = 'playercoordinates.csv'
@@ -139,10 +140,12 @@ def main():
         cv.rectangle(img, (int(box[0]), int(box[1])-20), (int(box[0])+w+10, int(box[1])), (0,0,0), -1)
         cv.putText(img, str(i+1), (int(box[0])+5, int(box[1])-5), cv.FONT_HERSHEY_SIMPLEX, 0.6, (255,255,255), 2)
 
+    print("Detection complete -------------------------------------------------------------------------")
+
     # have user select any players that were not found by object detection 
     for i in range(len(player_bounding_boxes), 14):
         # img = cv.resize(img, (1200, 900))
-        bbox = cv.selectROI('Select any unmarked players.', img, False, printNotice=False)
+        bbox = cv.selectROI('Draw a box around any players that don\'t currently have a box.', img, False, printNotice=False)
         player_bounding_boxes.append(bbox)
 
         tracker = cv.legacy.TrackerCSRT_create()
@@ -151,19 +154,22 @@ def main():
         p1 = (int(bbox[0]), int(bbox[1]))
         p2 = (int(bbox[0] + bbox[2]), int(bbox[1] + bbox[3]))
         cv.rectangle(img, p1, p2, (0,0,0), 2, 1)
-        (w, h), _ = cv.getTextSize(str(i), cv.FONT_HERSHEY_SIMPLEX, 0.6, 2)
+        (w, h), _ = cv.getTextSize(str(i+1), cv.FONT_HERSHEY_SIMPLEX, 0.6, 2)
         cv.rectangle(img, (int(bbox[0]), int(bbox[1])-20), (int(bbox[0])+w+10, int(bbox[1])), (0,0,0), -1)
-        cv.putText(img, str(i), (int(bbox[0])+5, int(bbox[1])-5), cv.FONT_HERSHEY_SIMPLEX, 0.6, (255,255,255), 2)
-
-    cv.destroyWindow('Select any unmarked players.')
+        cv.putText(img, str(i+1), (int(bbox[0])+5, int(bbox[1])-5), cv.FONT_HERSHEY_SIMPLEX, 0.6, (255,255,255), 2)
+    
+    cv.destroyWindow('Draw a box around any players that don\'t currently have a box.')
+    cv.imshow('Identify teams in the terminal.', img)
+    cv.waitKey(1000)
 
     teams = []
     for i in range(1, 15): 
-        team = input("What team is player " + str(i) + " on? (enter 1 or 2) ")
+        team = input("What team is player " + str(i) + " on? ")     
         while team != "1" and team != "2": 
             team = input("Please enter either 1 or 2. ")
         teams.append(team)
-    print(teams)
+
+    cv.destroyWindow('Identify teams in the terminal.')
     teams_file_writer.writerows(teams)
     print("Beginning tracking -------------------------------------------------------------------------")
 
@@ -397,7 +403,7 @@ def main():
             if not success:
                 break
 
-    print("Tracking complete. -----------------------------------------------------------------------")
+    print("Tracking complete. -------------------------------------------------------------------------")
 
     # ======================= CLEANUP ==================================================
 

@@ -49,8 +49,8 @@ def generate_field() :
     plt.axis('off')
 
     #creating scatter plots for the players? Maybe something we want to do
-    ax.scatter([], [], c= 'blue', label = 'CUTrules', zorder=2)
-    ax.scatter([], [], c= 'red', label = 'Losing Team', zorder=2)
+    ax.scatter([], [], c= '#FF0036', label = 'Team 1', zorder=2)
+    ax.scatter([], [], c= '#467EFF', label = 'Team 2', zorder=2)
     # ax.scatter([], [], c='white' , label = 'Disc', zorder=2)
     ax.legend(loc='upper right')
 
@@ -63,7 +63,7 @@ fig, ax = generate_field()
 playerList = []
 for i in range(numPlayers) :
     team = next(teamData)
-    if team == 1: 
+    if team == "1\n": 
         color = '#FF0036'
     else: 
         color = '#467EFF'
@@ -90,11 +90,11 @@ def update(frame):
     return playerList,
 
 anim = animation.FuncAnimation(fig, update, frames=range(1,numFrames), repeat=False, interval=100)
-# anim.save("./animation_moviepy.mp4")
-# print('pausing')
 writer = animation.FFMpegWriter(
      fps=8, metadata=dict(artist='Conor_And_Taylor'), bitrate=800)
 anim.save("frisbeeMovie.mp4", writer=writer)
+print("Animation complete. ------------------------------------------------------------------------")
+
 #plt.show()
 ##animation##
 # FFwriter = animation.FFMpegWriter(fps=10)
