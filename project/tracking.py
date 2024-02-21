@@ -218,6 +218,7 @@ def main():
     print("Detection complete -------------------------------------------------------------------------")
 
     # have user select any players that were not found by object detection 
+    cv.namedWindow('Draw a box around any players that don\'t currently have a box.', cv.WINDOW_NORMAL)
     for i in range(len(player_bounding_boxes), 14):
         print("Select player " + str(i+1))
         # img = cv.resize(img, (1600, 1400))
@@ -240,6 +241,8 @@ def main():
     cv.imshow('Identify teams in the terminal.', img)
     cv.waitKey(1000)
 
+    
+    cv.namedWindow("Identify teams in the terminal.", cv.WINDOW_NORMAL)
     teams = []
     for i in range(1, 15): 
         team = input("What team is player " + str(i) + " on? ")     
