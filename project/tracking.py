@@ -153,10 +153,12 @@ def getPlayerCount(img):
     text_size = cv.getTextSize(text, font, font_scale, font_thickness)[0]
     text_x = (img.shape[1] - text_size[0]) // 2
     text_y = 50
+
+    cv.rectangle(img_copy, (text_x-5, text_y+5), (text_x+text_size[0]+5, text_y-text_size[1]-5), (255,255,255), -1)
     cv.putText(img_copy, text, (text_x, text_y), font, font_scale, font_color, font_thickness)
 
     cv.namedWindow("Player Count", cv.WINDOW_NORMAL)
-    cv.imshow("Player Count", img)
+    cv.imshow("Player Count", img_copy)
 
     # Wait for input
     player_count_str = ''
