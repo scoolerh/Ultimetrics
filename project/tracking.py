@@ -129,6 +129,25 @@ def displayInstructions(original_img, text):
 
     return img
 
+def createPlayerNumberImage(img, player_number):
+    # Make a copy of the original image to avoid modifying it
+    img_copy = img.copy()
+
+    # Display prompt on the image window
+    font = cv.FONT_HERSHEY_SIMPLEX
+    font_scale = 1.5
+    font_color = (0, 0, 0)  # Black color
+    font_thickness = 2
+    text = "What team is player " + str(player_number) + " on? (Enter 1 or 2)"
+    text_size = cv.getTextSize(text, font, font_scale, font_thickness)[0]
+    text_x = (img.shape[1] - text_size[0]) // 2
+    text_y = 50
+    cv.putText(img_copy, text, (text_x, text_y), font, font_scale, font_color, font_thickness)
+
+    return img_copy
+
+
+
 
 
 
@@ -238,19 +257,26 @@ def main():
         cv.putText(img, str(i+1), (int(bbox[0])+5, int(bbox[1])-5), cv.FONT_HERSHEY_SIMPLEX, 0.6, (255,255,255), 2)
     
     cv.destroyWindow('Draw a box around any players that don\'t currently have a box.')
-    cv.imshow('Identify teams in the terminal.', img)
-    cv.waitKey(1000)
+
 
     
-    cv.namedWindow("Identify teams in the terminal.", cv.WINDOW_NORMAL)
+    cv.namedWindow("Identify teams.", cv.WINDOW_NORMAL)
     teams = []
-    for i in range(1, 15): 
-        team = input("What team is player " + str(i) + " on? ")     
-        while team != "1" and team != "2": 
-            team = input("Please enter either 1 or 2. ")
-        teams.append(team)
 
-    cv.destroyWindow('Identify teams in the terminal.')
+    for i in range(1, 15):
+        cur_image = createPlayerNumberImage(img, i)
+        cv.imshow("Identify teams.", cur_image)
+
+        # Wait for key press
+        key = cv.waitKey(0)
+
+        # Record team based on key press
+        if key == ord('1'):
+            teams.append('1')
+        elif key == ord('2'):
+            teams.append('2')
+
+    cv.destroyWindow('Identify teams.')
     teams_file_writer.writerows(teams)
     print("Beginning tracking -------------------------------------------------------------------------")
 
@@ -403,7 +429,7 @@ def main():
                         
         coordinates_file_writer.writerow(csvLine)   
 
-        img = cv.resize(img, (1600, 1400))
+        # img = cv.resize(img, (1600, 1400))
         cv.imshow("Tracking...", img)
 
         # Exit if ESC pressed
