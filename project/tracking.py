@@ -8,6 +8,8 @@ import sys
 player_bounding_boxes = []
 playerMultiTracker = None
 kalmanFilters = []
+team1Color = (255,0,54)
+team2Color = (70,126,255)
 
 # Converts pixel coordinates to field coordinates in yards from top left
 # Inputs:
@@ -176,10 +178,6 @@ def getPlayerCount(img):
     return player_count
 
 
-
-
-
-
 def main():
     global player_bounding_boxes
     global playerMultiTracker
@@ -234,10 +232,6 @@ def main():
 
     # Create a multi tracker for the corners and players 
     corner_multi_tracker, M, source = instantiateCorners(corner_bounding_boxes, img)
-
-    
-    #print(player_count)
-
     playerMultiTracker = cv.legacy.MultiTracker_create()
     player_bounding_boxes = detectionSelection(img, source)
 
@@ -432,9 +426,14 @@ def main():
         for i, newPlayerBox in enumerate(player_bounding_boxes):
             p1 = (int(newPlayerBox[0]), int(newPlayerBox[1]))
             p2 = (int(newPlayerBox[0] + newPlayerBox[2]), int(newPlayerBox[1] + newPlayerBox[3]))
-            cv.rectangle(img, p1, p2, (0,0,0), 2, 1)
+            team = teams[i]
+            if team == '1': 
+                color = team1Color 
+            else: 
+                color = team2Color
+            cv.rectangle(img, p1, p2, color, 2, 1)
             (w, h), _ = cv.getTextSize(str(i+1), cv.FONT_HERSHEY_SIMPLEX, 0.6, 2)
-            cv.rectangle(img, (int(newPlayerBox[0]), int(newPlayerBox[1])-20), (int(newPlayerBox[0])+w+10, int(newPlayerBox[1])), (0,0,0), -1)
+            cv.rectangle(img, (int(newPlayerBox[0]), int(newPlayerBox[1])-20), (int(newPlayerBox[0])+w+10, int(newPlayerBox[1])), color, -1)
             cv.putText(img, str(i+1), (int(newPlayerBox[0])+5, int(newPlayerBox[1])-5), cv.FONT_HERSHEY_SIMPLEX, 0.6, (255,255,255), 2)
             if not newPlayerBox[0] > 0 :
                 csvLine.append(-1)
