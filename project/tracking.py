@@ -7,12 +7,12 @@ import sys
 import tkinter as tk
 from tkinter import simpledialog
 
-def getPlayerCount():
+""" def getPlayerCount():
     root = tk.Tk()
     root.withdraw()  # Hide the main window
 
     player_count = simpledialog.askinteger("Player Count", "Enter the number of players on the field:", parent=root, minvalue=1)
-    return player_count
+    return player_count """
 
 player_bounding_boxes = []
 playerMultiTracker = None
@@ -125,6 +125,7 @@ def displayInstructions(original_img, text):
     text_x = (img.shape[1] - text_size[0]) // 2
     text_y = 50
 
+    cv.rectangle(img, (text_x-5, text_y+5), (text_x+text_size[0]+5, text_y-text_size[1]-5), (255,255,255), -1)
     cv.putText(img, text, (text_x, text_y), font, font_scale, font_color, font_thickness)
 
     return img
@@ -142,14 +143,11 @@ def createPlayerNumberImage(img, player_number):
     text_size = cv.getTextSize(text, font, font_scale, font_thickness)[0]
     text_x = (img.shape[1] - text_size[0]) // 2
     text_y = 50
+
+    cv.rectangle(img_copy, (text_x-5, text_y+5), (text_x+text_size[0]+5, text_y-text_size[1]-5), (255,255,255), -1)
     cv.putText(img_copy, text, (text_x, text_y), font, font_scale, font_color, font_thickness)
 
     return img_copy
-
-
-
-
-
 
 def main():
     global player_bounding_boxes
@@ -171,7 +169,6 @@ def main():
         print("Failed to read frame from video source. Exiting...")
         exit()
 
-
     # cv.namedWindow("Tracking...", cv.WINDOW_NORMAL)
     # cv.namedWindow("Identify teams in the terminal.", cv.WINDOW_NORMAL)
     # cv.namedWindow("Draw a box around any players that don\'t currently have a box.", cv.WINDOW_NORMAL)
@@ -191,8 +188,6 @@ def main():
     cornerNames = ["top left", "bottom left", "bottom right", "top right"]
     # These are the coordinates of the bounding boxes for the specific test frisbee film we are using (need to be changed depending on the video that is being used)
     corner_bounding_boxes = [(1189, 676, 11, 15), (0, 1739, 26, 30), (3513, 1662, 27, 37), (2294, 676, 21, 17)]
-    # for han: 
-    # corner_bounding_boxes = [(1307, 256, 22, 25), (22, 1535, 27, 30), (3580, 1577, 36, 50), (2150, 260, 33, 27)]
 
     # manually mark the bounding boxes of corners
     corner_bounding_boxes = []
@@ -207,14 +202,14 @@ def main():
         p2 = (int(box[0] + box[2]), int(box[1] + box[3]))
         cv.rectangle(img, p1, p2, (0, 0, 0), 2, 1)
     
-    player_count = getPlayerCount()
+    #player_count = getPlayerCount()
     cv.destroyWindow("Corner MultiTracker")
 
     # Create a multi tracker for the corners and players 
     corner_multi_tracker, M, source = instantiateCorners(corner_bounding_boxes, img)
 
     
-    print(player_count)
+    #print(player_count)
 
     playerMultiTracker = cv.legacy.MultiTracker_create()
     player_bounding_boxes = detectionSelection(img, source)
@@ -224,7 +219,6 @@ def main():
         tracker = cv.legacy.TrackerCSRT_create()
         playerMultiTracker.add(tracker, img, bbox)
 
-    # SHOULD CREATE A FUNCTION FOR THIS
     # write the boxes on the image 
     for i, box in enumerate(player_bounding_boxes):
         p1 = (int(box[0]), int(box[1]))
@@ -240,7 +234,6 @@ def main():
     cv.namedWindow('Draw a box around any players that don\'t currently have a box.', cv.WINDOW_NORMAL)
     for i in range(len(player_bounding_boxes), 14):
         print("Select player " + str(i+1))
-        # img = cv.resize(img, (1600, 1400))
         bbox = cv.selectROI('Draw a box around any players that don\'t currently have a box.', img, False, printNotice=False)
         while (bbox[2] == 0 or bbox[3] == 0):
             bbox = cv.selectROI('Draw a box around any players that don\'t currently have a box.', img, False, printNotice=False)
@@ -258,8 +251,6 @@ def main():
     
     cv.destroyWindow('Draw a box around any players that don\'t currently have a box.')
 
-
-    
     cv.namedWindow("Identify teams.", cv.WINDOW_NORMAL)
     teams = []
 
@@ -429,7 +420,6 @@ def main():
                         
         coordinates_file_writer.writerow(csvLine)   
 
-        # img = cv.resize(img, (1600, 1400))
         cv.imshow("Tracking...", img)
 
         # Exit if ESC pressed
