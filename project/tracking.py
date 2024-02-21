@@ -111,6 +111,27 @@ def detectionSelection(img, source):
     new_player_bounding_boxes = detect(res)
     return new_player_bounding_boxes
 
+def displayInstructions(original_img, text):
+    # Make a copy of the original image to preserve the background
+    img = original_img.copy()
+
+    # Display instructions on the image window with larger font size and black color
+    font = cv.FONT_HERSHEY_SIMPLEX
+    font_scale = 1.5  # Increase font size
+    font_color = (0, 0, 0)  # Black color
+    font_thickness = 2
+
+    text_size = cv.getTextSize(text, font, font_scale, font_thickness)[0]
+    text_x = (img.shape[1] - text_size[0]) // 2
+    text_y = 50
+
+    cv.putText(img, text, (text_x, text_y), font, font_scale, font_color, font_thickness)
+
+    return img
+
+
+
+
 def main():
     global player_bounding_boxes
     global playerMultiTracker
@@ -135,7 +156,6 @@ def main():
     # cv.namedWindow("Tracking...", cv.WINDOW_NORMAL)
     # cv.namedWindow("Identify teams in the terminal.", cv.WINDOW_NORMAL)
     # cv.namedWindow("Draw a box around any players that don\'t currently have a box.", cv.WINDOW_NORMAL)
-    cv.namedWindow("Corner MultiTracker", cv.WINDOW_NORMAL)
     
     # create csv where we output computed player coordinates
     coordinates_filename = 'playercoordinates.csv'
@@ -157,21 +177,24 @@ def main():
 
     # manually mark the bounding boxes of corners
     corner_bounding_boxes = []
+    cv.namedWindow("Corner MultiTracker", cv.WINDOW_NORMAL)
+
     for j in range(4):
-        print('Draw a box around the ' + cornerNames[j] + ' corner.')
-        # img = cv.resize(img, (1600, 1400))
-        box = cv.selectROI('Corner MultiTracker', img, False, printNotice=False)
+        instruction_text = 'Draw a box around the ' + cornerNames[j] + ' corner, then press ENTER'
+        display_img = displayInstructions(img, instruction_text)
+        box = cv.selectROI('Corner MultiTracker', display_img, False, printNotice=False)
         corner_bounding_boxes.append(box)
         p1 = (int(box[0]), int(box[1]))
         p2 = (int(box[0] + box[2]), int(box[1] + box[3]))
-        cv.rectangle(img, p1, p2, (0,0,0), 2, 1)
+        cv.rectangle(img, p1, p2, (0, 0, 0), 2, 1)
     
+    player_count = getPlayerCount()
     cv.destroyWindow("Corner MultiTracker")
 
     # Create a multi tracker for the corners and players 
     corner_multi_tracker, M, source = instantiateCorners(corner_bounding_boxes, img)
 
-    player_count = getPlayerCount()
+    
     print(player_count)
 
     playerMultiTracker = cv.legacy.MultiTracker_create()
