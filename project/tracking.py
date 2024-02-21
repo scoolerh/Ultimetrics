@@ -1,5 +1,4 @@
 import cv2 as cv
-import random
 import csv
 import numpy as np
 from detection import detect
@@ -22,8 +21,6 @@ def screen2fieldCoordinates(x_coord, y_coord, transformation_matrix):
     output_array = cv.perspectiveTransform(input_array, transformation_matrix)
     transformed_coordinates = output_array[0][0]
     return transformed_coordinates
-
-
 
 # FOR COMPUTING Y COORDINATE WHY DO WE DO + FOR BOTTOMMID BUT - FOR MIDDLE
 
@@ -60,7 +57,7 @@ def instantiateCorners(corner_bounding_boxes, img):
         tracker = cv.legacy.TrackerCSRT_create()
         corner_multi_tracker.add(tracker, img, bbox)
 
-    M, source = getPersepectiveMatrix(corner_bounding_boxes)
+    M, source = getPerspectiveMatrix(corner_bounding_boxes)
     
     return corner_multi_tracker, M, source
 
@@ -68,9 +65,9 @@ def instantiateCorners(corner_bounding_boxes, img):
 # Input: 
 # corner_bounding_boxes: Bounding boxes associated with the corners of the field of form ["top left", "bottom left", "bottom right", "top right"] where for each corner we record [x, y, width, height]
 # Outputs:
-# M: Persepctive transformation matrix which translates from pixel to field coordinates
+# M: Perspective transformation matrix which translates from pixel to field coordinates
 # source: 2d array with x and y coordinates of each of the 4 corners (middle location, not bounding boxes)
-def getPersepectiveMatrix(corner_bounding_boxes):
+def getPerspectiveMatrix(corner_bounding_boxes):
     # Initiliaze a source 2d array (will eventually contain corner location information)
     source = np.float32([[0,0],[0,0],[0,0],[0,0]])
 
@@ -149,7 +146,7 @@ def main():
     # for han: 
     # corner_bounding_boxes = [(1307, 256, 22, 25), (22, 1535, 27, 30), (3580, 1577, 36, 50), (2150, 260, 33, 27)]
 
-    # This is the code we initially had to manually mark the bounding boxes of corners
+    # manually mark the bounding boxes of corners
     corner_bounding_boxes = []
     for j in range(4):
         print('Draw a box around the ' + cornerNames[j] + ' corner.')
@@ -165,15 +162,6 @@ def main():
     # Create a multi tracker for the corners and players 
     corner_multi_tracker, M, source = instantiateCorners(corner_bounding_boxes, img)
     playerMultiTracker = cv.legacy.MultiTracker_create()
-
-    # This is the code we initially had to manually mark the bounding boxes of corners
-    # print("Please mark a box around each corner.")
-    # for j in range(4):
-    #     print('Draw a box around the ' + corner_names[j] + ' corner.')
-    #     cv.resize(img, (960, 540))
-    #     cornerBbox = cv.selectROI('Corner MultiTracker', img, False, printNotice=False)
-    #     corner_bounding_boxes.append(cornerBbox)
-
     player_bounding_boxes = detectionSelection(img, source)
 
     # Add player trackers to the multitracker
@@ -195,7 +183,7 @@ def main():
 
     # have user select any players that were not found by object detection 
     for i in range(len(player_bounding_boxes), 14):
-        print("Select player " + str(i))
+        print("Select player " + str(i+1))
         img = cv.resize(img, (1600, 1400))
         bbox = cv.selectROI('Draw a box around any players that don\'t currently have a box.', img, False, printNotice=False)
         while (bbox[2] == 0 or bbox[3] == 0):
@@ -229,29 +217,6 @@ def main():
 
     # ==================== PLAYER/CORNER TRACKING ======================================
     kalmanFilters = []
-
-    # Initialize Kalman Filters for all 14 players
-    # for _ in range(14):
-    #     kalman = cv.KalmanFilter(4, 2)  # 4 states (x, y, dx, dy), 2 measurements (x, y)
-    #     kalman.transitionMatrix = np.array([[1, 0, 1, 0],
-    #                                         [0, 1, 0, 1],
-    #                                         [0, 0, 1, 0],
-    #                                         [0, 0, 0, 1]], dtype=np.float32)
-        
-    #     kalman.measurementMatrix = np.array([[1, 0, 0, 0],
-    #                                         [0, 1, 0, 0]], dtype=np.float32)
-        
-    #     kalman.processNoiseCov = np.array([[1, 0, 0, 0],
-    #                                     [0, 1, 0, 0],
-    #                                     [0, 0, 1, 0],
-    #                                     [0, 0, 0, 1]], dtype=np.float32) * 0.03
-        
-    #     kalman.measurementNoiseCov = np.array([[1, 0],
-    #                                             [0, 1]], dtype=np.float32) * 0.1
-        
-    #     kalman.statePre = np.zeros((4, 1), dtype=np.float32)
-    #     kalman.statePost = np.zeros((4, 1), dtype=np.float32)
-    #     kalmanFilters.append(kalman)
 
     def redetectPlayers(redetectAll=False):
         global player_bounding_boxes
@@ -348,28 +313,7 @@ def main():
                 for bbox in player_bounding_boxes:
                     tracker = cv.legacy.TrackerCSRT_create()
                     playerMultiTracker.add(tracker, img, bbox)
-            
-        # # Update Kalman filters array with new filters if necessary
-        # if len(kalmanFilters) != len(player_bounding_boxes):
-        #     kalmanFilters = []
-        #     for _ in range(len(player_bounding_boxes)):
-        #         kalman = cv.KalmanFilter(4, 2)  # 4 states (x, y, dx, dy), 2 measurements (x, y)
-        #         kalman.transitionMatrix = np.array([[1, 0, 1, 0],
-        #                                             [0, 1, 0, 1],
-        #                                             [0, 0, 1, 0],
-        #                                             [0, 0, 0, 1]], dtype=np.float32)
-        #         kalman.measurementMatrix = np.array([[1, 0, 0, 0],
-        #                                             [0, 1, 0, 0]], dtype=np.float32)
-        #         kalman.processNoiseCov = np.array([[1, 0, 0, 0],
-        #                                         [0, 1, 0, 0],
-        #                                         [0, 0, 1, 0],
-        #                                         [0, 0, 0, 1]], dtype=np.float32) * 0.03
-        #         kalman.measurementNoiseCov = np.array([[1, 0],
-        #                                                 [0, 1]], dtype=np.float32) * 0.1
-        #         kalman.statePost = np.zeros((4, 1), dtype=np.float32)
-        #         kalmanFilters.append(kalman)
-
-
+ 
     counter = 0
     # Loop through video
     while cap.isOpened():
@@ -382,9 +326,9 @@ def main():
         success, corner_bounding_boxes = corner_multi_tracker.update(img)
         # If tracking was lost, select new ROI of corner
         if (not success):
-            print("Tracking of the " + str(corner_names[i]) + " corner was lost!")
+            print("Tracking of the corner was lost!")
 
-        M, source, destination = getPersepectiveMatrix(corner_bounding_boxes)
+        M, source = getPerspectiveMatrix(corner_bounding_boxes)
 
         # ==================== PLAYER TRACKING ======================================
         # re detect players every x frames
