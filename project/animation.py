@@ -3,6 +3,8 @@ import matplotlib.patches as patches
 import matplotlib.animation as animation
 import csv
 import warnings
+import numpy as np
+from scipy.signal import savgol_filter
 warnings.filterwarnings("ignore")
 
 # from matplotlib.animation import FFMpegWriter
@@ -17,13 +19,15 @@ warnings.filterwarnings("ignore")
 numFrames = 0
 with open("./playercoordinates.csv") as f:
     numFrames = sum(1 for line in f)
-playerData = open("./playercoordinates.csv")
-playerDataReader = csv.reader(playerData)
+
 teamData = open("./teams.csv")
 teamDataReader = csv.reader(teamData)
-
+playerDataReader = csv.reader(open("playercoordinates.csv"))
 header = next(playerDataReader, False)
 numPlayers = int((.5)*(len(header)))
+#initialize the lables for the players
+
+
 
 #initialize some global variables, we want lists of the x and y data
 playerVal = 0
@@ -33,6 +37,56 @@ for i in range(numPlayers) :
     xdatas.append(0)
     ydatas.append(0)
 # will be updated as we go through csv
+def smoothData() :
+    ##use the savgol filter to smooth large amounts of data
+    #look at time spent, how well the smoothing works
+    #we're going to smooth each column individually
+    playerDataReader = csv.reader(open("playercoordinates.csv"))
+    numColumns = len(next(playerDataReader, False))
+    #numColumns works correctly
+    #create our 2D array
+    data = [[] for x in range(numColumns)]
+
+    #initialize a global variable
+    numRows = 0
+    for row in playerDataReader :
+        #print(row)
+        #increment
+        
+        numRows += 1
+        for col in range(len(row)) :
+            #print(col)
+            data[col].append(float(row[col]))
+    #data is correctly initialized
+
+    #create an array of numpy arrays
+    numpyData = []
+    #create an array of smoothed data
+    smoothedData = []
+    for col in range(numColumns) :
+        
+        numpyData.append(np.array(data[col]))
+        #these are our parameters to change
+        smoothedData.append(savgol_filter(numpyData[col], 10, 3))
+    #debug
+    # print(data)
+    # print(smoothedData)
+
+
+    #the data at this stage is a list of numpy arrays, which we will need to read index by index until we've backfilled
+    #for now we just want to print line by line to see if we'd be adding the correct things
+    #initialize the next row
+    outfile = open("smoothedplayercoordinates.csv", 'w')
+    for row in range(numRows) :
+        nextRow = []
+        for col in smoothedData :
+            #this is cursed but it might work
+            if (row < len(col)) :
+                nextRow.append(col[row])
+        #print(nextRow)
+        outfile.write(str(nextRow).strip('[]'))
+        outfile.write('\n')
+    outfile.close()
 
 #create the frisbee field - 110 x 40
 def generate_field() :
@@ -59,7 +113,7 @@ def generate_field() :
 # plot static graph
 fig, ax = generate_field()
 
-#we want a line for each player, marked as a red o
+#we want a line for each player, marked as a red o or a blue o, depending on their team
 playerList = []
 for i in range(numPlayers) :
     team = next(teamData)
@@ -71,6 +125,11 @@ for i in range(numPlayers) :
     playerList.append(ln)
 
 #how to plot a single moment
+#smooth the data
+smoothData()
+
+playerData = open("./smoothedplayercoordinates.csv")
+playerDataReader = csv.reader(playerData)
 def update(frame):
     nextData = next(playerDataReader, False)
     
@@ -95,34 +154,7 @@ writer = animation.FFMpegWriter(
 anim.save("frisbeeMovie.mp4", writer=writer)
 print("Animation complete. ------------------------------------------------------------------------")
 
-#plt.show()
-##animation##
-# FFwriter = animation.FFMpegWriter(fps=10)
-# output = open('./animation.mp4', 'w')
-# anim.save('./animation.mp4', writer = FFwriter)
 
-# f = "animation.gif"
-# writergif = animation.PillowWriter(fps=30) 
-# anim.save(f, writer=writergif)
 
-# writervideo = animation.FFMpegWriter(fps=5) 
-#print("saving video")
-# anim.save('animationVideo.mp4', writer=writervideo) 
-# plt.close() 
-# video = anim.to_html5_video() 
-  
-# # embedding for the video 
-
-# saving to m4 using ffmpeg writer 
-# writervideo = animation.FFMpegWriter(fps=60) 
-# output = open('./animation.mp4', 'w')
-# anim.save(os.getcwd() + "animation.mp4", writer=writervideo) 
-# output.close()
-# plt.close() 
-# html = display.HTML(video) 
-# """ 
-# f = "animation.gif" 
-# writergif = animation.PillowWriter(fps=30, codec='libx264', bitrate=2) 
-# anim.save(f, writer=writergif) """
 
 plt.close()

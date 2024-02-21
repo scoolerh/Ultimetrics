@@ -4,15 +4,6 @@ import numpy as np
 from detection import detect
 import math
 import sys
-import tkinter as tk
-from tkinter import simpledialog
-
-""" def getPlayerCount():
-    root = tk.Tk()
-    root.withdraw()  # Hide the main window
-
-    player_count = simpledialog.askinteger("Player Count", "Enter the number of players on the field:", parent=root, minvalue=1)
-    return player_count """
 
 player_bounding_boxes = []
 playerMultiTracker = None
@@ -149,6 +140,44 @@ def createPlayerNumberImage(img, player_number):
 
     return img_copy
 
+
+def getPlayerCount(img):
+    img_copy = img.copy()
+
+    # Display prompt on the image window
+    font = cv.FONT_HERSHEY_SIMPLEX
+    font_scale = 1.5
+    font_color = (0, 0, 0)  # Black color
+    font_thickness = 2
+    text = "Enter the number of players on the field"
+    text_size = cv.getTextSize(text, font, font_scale, font_thickness)[0]
+    text_x = (img.shape[1] - text_size[0]) // 2
+    text_y = 50
+    cv.putText(img_copy, text, (text_x, text_y), font, font_scale, font_color, font_thickness)
+
+    cv.namedWindow("Player Count", cv.WINDOW_NORMAL)
+    cv.imshow("Player Count", img)
+
+    # Wait for input
+    player_count_str = ''
+    while True:
+        key = cv.waitKey(0)
+        if key == 13:  # Enter key pressed
+            break
+        elif key >= 48 and key <= 57:  # Only accept digits 0-9
+            player_count_str += chr(key)
+
+    # Destroy the window
+    cv.destroyWindow('Player Count')
+    player_count = int(player_count_str)
+
+    return player_count
+
+
+
+
+
+
 def main():
     global player_bounding_boxes
     global playerMultiTracker
@@ -168,10 +197,6 @@ def main():
     if not ret:
         print("Failed to read frame from video source. Exiting...")
         exit()
-
-    # cv.namedWindow("Tracking...", cv.WINDOW_NORMAL)
-    # cv.namedWindow("Identify teams in the terminal.", cv.WINDOW_NORMAL)
-    # cv.namedWindow("Draw a box around any players that don\'t currently have a box.", cv.WINDOW_NORMAL)
     
     # create csv where we output computed player coordinates
     coordinates_filename = 'playercoordinates.csv'
@@ -202,7 +227,7 @@ def main():
         p2 = (int(box[0] + box[2]), int(box[1] + box[3]))
         cv.rectangle(img, p1, p2, (0, 0, 0), 2, 1)
     
-    #player_count = getPlayerCount()
+    player_count = getPlayerCount(img)
     cv.destroyWindow("Corner MultiTracker")
 
     # Create a multi tracker for the corners and players 
@@ -372,6 +397,7 @@ def main():
  
     counter = 0
     # Loop through video
+    cv.namedWindow("Tracking...", cv.WINDOW_NORMAL)
     while cap.isOpened():
         success, img = cap.read()
         counter += 1
