@@ -4,6 +4,15 @@ import numpy as np
 from detection import detect
 import math
 import sys
+import tkinter as tk
+from tkinter import simpledialog
+
+def getPlayerCount():
+    root = tk.Tk()
+    root.withdraw()  # Hide the main window
+
+    player_count = simpledialog.askinteger("Player Count", "Enter the number of players on the field:", parent=root, minvalue=1)
+    return player_count
 
 player_bounding_boxes = []
 playerMultiTracker = None
@@ -123,9 +132,9 @@ def main():
         exit()
 
 
-    cv.namedWindow("Tracking...", cv.WINDOW_NORMAL)
-    cv.namedWindow("Identify teams in the terminal.", cv.WINDOW_NORMAL)
-    cv.namedWindow("Draw a box around any players that don\'t currently have a box.", cv.WINDOW_NORMAL)
+    # cv.namedWindow("Tracking...", cv.WINDOW_NORMAL)
+    # cv.namedWindow("Identify teams in the terminal.", cv.WINDOW_NORMAL)
+    # cv.namedWindow("Draw a box around any players that don\'t currently have a box.", cv.WINDOW_NORMAL)
     cv.namedWindow("Corner MultiTracker", cv.WINDOW_NORMAL)
     
     # create csv where we output computed player coordinates
@@ -150,7 +159,7 @@ def main():
     corner_bounding_boxes = []
     for j in range(4):
         print('Draw a box around the ' + cornerNames[j] + ' corner.')
-        img = cv.resize(img, (1600, 1400))
+        # img = cv.resize(img, (1600, 1400))
         box = cv.selectROI('Corner MultiTracker', img, False, printNotice=False)
         corner_bounding_boxes.append(box)
         p1 = (int(box[0]), int(box[1]))
@@ -161,6 +170,10 @@ def main():
 
     # Create a multi tracker for the corners and players 
     corner_multi_tracker, M, source = instantiateCorners(corner_bounding_boxes, img)
+
+    player_count = getPlayerCount()
+    print(player_count)
+
     playerMultiTracker = cv.legacy.MultiTracker_create()
     player_bounding_boxes = detectionSelection(img, source)
 
@@ -184,7 +197,7 @@ def main():
     # have user select any players that were not found by object detection 
     for i in range(len(player_bounding_boxes), 14):
         print("Select player " + str(i+1))
-        img = cv.resize(img, (1600, 1400))
+        # img = cv.resize(img, (1600, 1400))
         bbox = cv.selectROI('Draw a box around any players that don\'t currently have a box.', img, False, printNotice=False)
         while (bbox[2] == 0 or bbox[3] == 0):
             bbox = cv.selectROI('Draw a box around any players that don\'t currently have a box.', img, False, printNotice=False)
