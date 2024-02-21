@@ -146,7 +146,7 @@ def getPlayerCount(img):
     font_scale = 1.5
     font_color = (0, 0, 0)  # Black color
     font_thickness = 2
-    text = "Enter the numberof players on the field"
+    text = "Enter the number of players on the field"
     text_size = cv.getTextSize(text, font, font_scale, font_thickness)[0]
     text_x = (img.shape[1] - text_size[0]) // 2
     text_y = 50
@@ -194,11 +194,6 @@ def main():
     if not ret:
         print("Failed to read frame from video source. Exiting...")
         exit()
-
-
-    # cv.namedWindow("Tracking...", cv.WINDOW_NORMAL)
-    # cv.namedWindow("Identify teams in the terminal.", cv.WINDOW_NORMAL)
-    # cv.namedWindow("Draw a box around any players that don\'t currently have a box.", cv.WINDOW_NORMAL)
     
     # create csv where we output computed player coordinates
     coordinates_filename = 'playercoordinates.csv'
@@ -231,7 +226,7 @@ def main():
         p2 = (int(box[0] + box[2]), int(box[1] + box[3]))
         cv.rectangle(img, p1, p2, (0, 0, 0), 2, 1)
     
-    player_count = getPlayerCount()
+    player_count = getPlayerCount(img)
     cv.destroyWindow("Corner MultiTracker")
 
     # Create a multi tracker for the corners and players 
@@ -405,6 +400,7 @@ def main():
  
     counter = 0
     # Loop through video
+    cv.namedWindow("Tracking...", cv.WINDOW_NORMAL)
     while cap.isOpened():
         success, img = cap.read()
         counter += 1
