@@ -332,6 +332,7 @@ def animateGame(game):
     # Look at this for how we have changed our savgol filter
     for player_id, player in players_dictionary.items():
         coordinate_history = player.getCoordinateHistory()
+        print(coordinate_history)
         x_coords = [frame[0] for frame in coordinate_history]
         y_coords = [frame[1] for frame in coordinate_history]
         smoothed_x = savgol_filter(x_coords, 10, 3)
@@ -480,7 +481,7 @@ class Game:
                 transformed_y_value = transformed_coordinates[1]
                 player.addToCoordinateHistory([transformed_x_value, transformed_y_value])
             else:
-                player.addToCoordinateHistory([])
+                player.addToCoordinateHistory([None,None])
     
     def updateTransformationMatrix(self):
         # initialize empty source array
@@ -492,7 +493,7 @@ class Game:
             source[i][1] = middleCoords[1]
         # This opencv function returns a matrix which translates our pixel coordinates into relative field coordinates
         self.transformation_matrix = cv.getPerspectiveTransform(source, self.destination_matrix)
-    
+
 # ================= PLAYER CLASS ==================================
 
 # Player class to store information on 
@@ -643,7 +644,7 @@ def main():
         if k == 27 : break
         
         # check for routine redetection
-        if counter >= 16:
+        if counter >= 50:
             redetectPlayers(img, game)
             img = writePlayerBoundingBoxes(img, game)
             counter = 0
