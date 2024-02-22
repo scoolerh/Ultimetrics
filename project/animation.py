@@ -25,8 +25,8 @@ teamDataReader = csv.reader(teamData)
 playerDataReader = csv.reader(open("playercoordinates.csv"))
 header = next(playerDataReader, False)
 numPlayers = int((.5)*(len(header)))
-#initialize the lables for the players
-
+#initialize the labels for the players
+labels = ['1','2','3','4','5','6','7','8','9','10','11','12','13','14']
 
 
 #initialize some global variables, we want lists of the x and y data
@@ -140,12 +140,20 @@ def update(frame):
             xdatas[playerVal] = (float(nextData[i+1]))
             ydatas[playerVal] = (float(nextData[i]))
             playerList[playerVal].set_data(xdatas[playerVal], ydatas[playerVal])
-
+            # Adding labels for each player
+            label = labels[int(i/2)]
+            ax.text(xdatas[playerVal], ydatas[playerVal], label, color="black", ha='center', va='center', fontsize=8)
+            
+            # ax.text(0, 0, label, color="black", ha='center', va='center', fontsize=8)
+        # for ln, label in zip(playerList, labels):
+        #     ln.set_label(label)
+        #     ax.text(0, 0, label, color="black", ha='center', va='center', fontsize=8)
 
     # if (nextData) :
     #     xdata = (float(nextData[1]) / 10)
     #     ydata = (float(nextData[2]) / 10)
     # ln.set_data(xdata, ydata)
+    
     return playerList,
 
 anim = animation.FuncAnimation(fig, update, frames=range(1,numFrames), repeat=False, interval=100)
