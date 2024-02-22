@@ -329,6 +329,7 @@ def generate_field() :
 def animateGame(game):
     players_dictionary = game.getAllPlayers()
 
+    # Look at this for how we have changed our savgol filter
     for player_id, player in players_dictionary.items():
         coordinate_history = player.getCoordinateHistory()
         x_coords = [frame[0] for frame in coordinate_history]
