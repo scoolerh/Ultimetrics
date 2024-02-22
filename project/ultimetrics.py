@@ -363,7 +363,7 @@ def animateGame(game):
         player_lines[player_id], = ax.plot([], [], color=color, marker='o')
 
     # Animation function
-    def update(frame, player_lines):
+    def update(frame):
         for player_id, player_line in player_lines.items():
             smoothed_history = players_dictionary[player_id].getSmoothedHistory()
             if frame < len(smoothed_history):
@@ -371,7 +371,7 @@ def animateGame(game):
                 player_line.set_data(x_coord, y_coord)
         return list(player_lines.values())
     
-    animation = animationLib.FuncAnimation(fig, update, frames=len(players_dictionary[0].getSmoothedHistory()), interval=50, blit=True)
+    animation = animationLib.FuncAnimation(fig, update, frames=len(players_dictionary[1].getSmoothedHistory()), interval=50, blit=True)
     writer = animationLib.FFMpegWriter(fps=8, metadata=dict(artist='Jack_and_Ethan'), bitrate=800)
     animation.save("frisbeeAnimation.mp4", writer=writer)
 
@@ -531,7 +531,8 @@ class Player:
 
 def main():
     # Name of mp4 with frisbee film
-    file_name = 'frisbee.mp4'
+    # file_name = 'frisbee.mp4'
+    file_name = 'huck.mp4'
 
     # Load the video
     cap = cv.VideoCapture(file_name)
