@@ -3,6 +3,7 @@ import numpy as np
 import yolov5
 import math
 import sys
+import time
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import matplotlib.animation as animationLib
@@ -187,73 +188,40 @@ def redetectPlayers(img, game, redetect_all=False):
                 closest_player_id = smallest_dif[0]
                 players_to_update.append([closest_player_id, detected_player_bbox])
             else:
-                # add detected_player
-                # TO-DO: choose player that is closest
-                for player in game.all_players:
-                    if not player.id in game.players_on_field:
-                        player.updateBoundingBox(detected_player_bbox)
-                        game.addPlayerToField(player.id, img)
-                        break 
+                game.addNewDetectedPlayerToField(detected_player_bbox, img)
         game.removeAllPlayersFromField(img)
         for player_id, detected_player in players_to_update:
             game.all_players[player_id].updateBoundingBox(detected_player)
             game.addPlayerToField(player_id, img)
         game.updatePlayerMultitracker(img)
     else:
-        detected_boxes_to_add = []
+        detected_player_boxes_to_add = []
 
-        tracked_player_boxes_to_match = []
-        for player_id in game.players_on_field:
-            tracked_player_boxes_to_match.append([player_id, game.all_players[player_id].getBoundingBox()])
+        for detected_player_bbox in new_player_bounding_boxes:
+            found_match = False
+            detected_player_location = getBottomMiddleCoords(detected_player_bbox)
+
+            for tracked_player in game.all_players.values():
+                if tracked_player.id in game.players_on_field:
+                    tracked_player_bbox = tracked_player.getBoundingBox()
+                    distance = math.dist(getBottomMiddleCoords(tracked_player_bbox), detected_player_location)
+                    if distance < detected_player_bbox[3]*0.75:
+                        # print("matched: " + str(distance))
+                        found_match = True
+                        break
+            if not found_match:
+                print("no match found")
+                detected_player_boxes_to_add.append(detected_player_bbox)
         
-        for index, detected_player_bbox in enumerate(new_player_bounding_boxes):
-            if len(tracked_player_boxes_to_match) > 0:
-                detected_player_location = getMiddleCoords(detected_player_bbox)
-
-                old_locations_dif = []
-                for tracked_player in tracked_player_boxes_to_match:
-                    tracked_player_id = tracked_player[0]
-                    tracked_player_bbox = tracked_player[1]
-                    old_locations_dif.append([tracked_player_id, math.dist(getMiddleCoords(tracked_player_bbox), detected_player_location)])
-                smallest_dif = min(old_locations_dif, key = lambda p: p[1])
-                closest_player_id = smallest_dif[0]
-                closest_player_distance = smallest_dif[1]
-                if closest_player_distance < detected_player_bbox[3]:
-                    for i, tracked_player_info in enumerate(tracked_player_boxes_to_match):
-                        if tracked_player_info[0] == closest_player_id:
-                            tracked_player_boxes_to_match.pop(i)
-                            break
-                else:
-                    detected_boxes_to_add.append(detected_player_bbox)
-        for detected_box_to_add in detected_boxes_to_add:
-            if len(tracked_player_boxes_to_match) > 0:
-                # find closest remaining tracked player and update bbox to detected bbox
-                detected_player_location = getMiddleCoords(detected_box_to_add)
-
-                old_locations_dif = []
-                for tracked_player in tracked_player_boxes_to_match:
-                    tracked_player_id = tracked_player[0]
-                    tracked_player_bbox = tracked_player[1]
-                    old_locations_dif.append([tracked_player_id, math.dist(getMiddleCoords(tracked_player_bbox), detected_player_location)])
-                smallest_dif = min(old_locations_dif, key = lambda p: p[1])
-                closest_player_id = smallest_dif[0]
+        for detected_bbox in detected_player_boxes_to_add:
+            if len(game.players_on_field) >= game.max_players:
+                player_id_to_change = game.removeClosestTwoPlayers()
+                game.all_players[player_id_to_change].updateBoundingBox(detected_bbox)
+                game.addPlayerToField(player_id_to_change, img)
                 
-                game.all_players[closest_player_id].updateBoundingBox(detected_box_to_add)
-
-                for i, tracked_player_info in enumerate(tracked_player_boxes_to_match):
-                        if tracked_player_info[0] == closest_player_id:
-                            tracked_player_boxes_to_match.pop(i)
-                            break
             else:
-                # assign to player not on field and add to field
-                for player in game.all_players.values():
-                    if not player.id in game.players_on_field:
-                        player.updateBoundingBox(detected_box_to_add)
-                        game.addPlayerToField(player.id, img)
-                        break 
-        # for remaining_tracked_player in tracked_player_boxes_to_match:
-        #     player_id = remaining_tracked_player[0]
-        #     game.removePlayerFromField(player_id, img)
+                game.addNewDetectedPlayerToField(detected_bbox, img)
+            # game.addPlayerToGame(detected_bbox, True, img)
         game.updatePlayerMultitracker(img)
 
 # ============== DRAWING BBOXES =======================================
@@ -296,10 +264,10 @@ def writeCornerBoundingBoxes(img, game):
         cv.rectangle(img, p1, p2, (0,0,0), 2, 1)
     return img
 
-def writeCornerBoundingBox(img, box):
+def writeCornerBoundingBox(img, box, color=(0,0,0)):
     p1 = (int(box[0]), int(box[1]))
     p2 = (int(box[0] + box[2]), int(box[1] + box[3]))
-    cv.rectangle(img, p1, p2, (0,0,0), 2, 1)
+    cv.rectangle(img, p1, p2, color, 2, 1)
     return img
 
 # ======================= ANIMATION ==================================================
@@ -423,17 +391,51 @@ class Game:
             player_tracker = cv.legacy.TrackerCSRT_create()
             self.player_multi_tracker.add(player_tracker, img, self.all_players[player_id].getBoundingBox())
     
+    def addNewDetectedPlayerToField(self, new_bbox, img):
+        # add detected_player to a non-field player
+        # TO-DO: choose non-field player that is closest
+        final_player_id = None
+        for player in self.all_players.values():
+            if not player.id in self.players_on_field:
+                player.updateBoundingBox(new_bbox)
+                self.addPlayerToField(player.id, img)
+                final_player_id = player.id
+                break 
+        return final_player_id
     # Method to remove a player from being recognized as on the field (we still keep track of that players information)
-    def removePlayerFromField(self, player_id, img):
+    def removePlayerFromField(self, player_id):
         for i, id in enumerate(self.players_on_field):
             if id == player_id:
                 self.players_on_field.pop(i)
-                self.updatePlayerMultitracker(img)
                 break
-    
+                
     def removeAllPlayersFromField(self, img):
         self.players_on_field = []
         self.updatePlayerMultitracker(img)
+    
+    def removeClosestTwoPlayers(self):
+        players = list(self.all_players.items())
+        # closest_two_players = [distance, first_player_id, second_player_id]
+        closest_two_players = [sys.maxsize, None, None]
+        start_index = 1
+        for player_id, player in players:
+            if player_id in self.players_on_field:
+                for i in range(start_index, len(players)):
+                    compared_player_id, compared_player = players[i]
+                    if compared_player_id in self.players_on_field:
+                        distance = math.dist(getBottomMiddleCoords(player.getBoundingBox()), getBottomMiddleCoords(compared_player.getBoundingBox()))
+                        if distance < closest_two_players[0] and distance != 0:
+                            # found new closest two
+                            closest_two_players[0] = distance
+                            closest_two_players[1] = player_id
+                            closest_two_players[2] = compared_player_id
+            start_index += 1
+        
+        # TO-DO: optimize which one to choose
+        # arbitrarily pick first player
+        player_id_to_remove = closest_two_players[1]
+        self.removePlayerFromField(player_id_to_remove)
+        return player_id_to_remove
     
     def updatePlayerMultitracker(self, img):
         new_player_multi_tracker = cv.legacy.MultiTracker_create()
@@ -451,7 +453,7 @@ class Game:
             self.corner_bounding_boxes = updated_corner_bounding_boxes
             self.updateTransformationMatrix()
 
-        return success
+        return success, img
     
     def updatePlayers(self, img):
         success, updated_player_bounding_boxes = self.player_multi_tracker.update(img)
@@ -461,7 +463,7 @@ class Game:
                 player_id = self.players_on_field[i]
                 self.all_players[player_id].updateBoundingBox(updated_bounding_box)
 
-        return success
+        return success, img
     
     def getAllPlayers(self):
         return self.all_players
@@ -621,13 +623,13 @@ def main():
         # ==================== PLAYER TRACKING ======================================
         # re detect players every x frames
         # update tracking for players
-        success = game.updatePlayers(img)
+        success, img = game.updatePlayers(img)
 
         # If tracking was lost, run detection again 
         if not success:
             print("Tracking of player was lost!")
             redetectPlayers(img, game, redetect_all=True)
-            success = game.updatePlayers(img)
+            success, img = game.updatePlayers(img)
         if not success:
             print("Full redection failed :(")
 
@@ -642,7 +644,7 @@ def main():
         if k == 27 : break
         
         # check for routine redetection
-        if counter >= 16:
+        if counter >= 8:
             redetectPlayers(img, game)
             img = writePlayerBoundingBoxes(img, game)
             counter = 0
