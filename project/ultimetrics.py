@@ -297,8 +297,10 @@ def generate_field() :
 def animateGame(game):
     players_dictionary = game.getAllPlayers()
 
+    # Look at this for how we have changed our savgol filter
     for player_id, player in players_dictionary.items():
         coordinate_history = player.getCoordinateHistory()
+        print(coordinate_history)
         x_coords = [frame[0] for frame in coordinate_history]
         y_coords = [frame[1] for frame in coordinate_history]
         smoothed_x = savgol_filter(x_coords, 10, 3)
@@ -329,7 +331,7 @@ def animateGame(game):
         player_lines[player_id], = ax.plot([], [], color=color, marker='o')
 
     # Animation function
-    def update(frame, player_lines):
+    def update(frame):
         for player_id, player_line in player_lines.items():
             smoothed_history = players_dictionary[player_id].getSmoothedHistory()
             if frame < len(smoothed_history):
@@ -337,7 +339,7 @@ def animateGame(game):
                 player_line.set_data(x_coord, y_coord)
         return list(player_lines.values())
     
-    animation = animationLib.FuncAnimation(fig, update, frames=len(players_dictionary[0].getSmoothedHistory()), interval=50, blit=True)
+    animation = animationLib.FuncAnimation(fig, update, frames=len(players_dictionary[1].getSmoothedHistory()), interval=50, blit=True)
     writer = animationLib.FFMpegWriter(fps=8, metadata=dict(artist='Jack_and_Ethan'), bitrate=800)
     animation.save("frisbeeAnimation.mp4", writer=writer)
 
@@ -481,7 +483,7 @@ class Game:
                 transformed_y_value = transformed_coordinates[1]
                 player.addToCoordinateHistory([transformed_x_value, transformed_y_value])
             else:
-                player.addToCoordinateHistory([])
+                player.addToCoordinateHistory([None,None])
     
     def updateTransformationMatrix(self):
         # initialize empty source array
@@ -493,7 +495,7 @@ class Game:
             source[i][1] = middleCoords[1]
         # This opencv function returns a matrix which translates our pixel coordinates into relative field coordinates
         self.transformation_matrix = cv.getPerspectiveTransform(source, self.destination_matrix)
-    
+
 # ================= PLAYER CLASS ==================================
 
 # Player class to store information on 
@@ -531,7 +533,8 @@ class Player:
 
 def main():
     # Name of mp4 with frisbee film
-    file_name = 'frisbee.mp4'
+    # file_name = 'frisbee.mp4'
+    file_name = 'huck.mp4'
 
     # Load the video
     cap = cv.VideoCapture(file_name)
