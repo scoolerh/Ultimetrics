@@ -261,12 +261,20 @@ def redetectPlayers(img, game, redetect_all=False):
 def writePlayerBoundingBoxes(img, game):
     players_on_field = game.getPlayersOnField()
     for player_id in players_on_field:
-        box = game.all_players[player_id].getBoundingBox()
+        current_player = game.all_players[player_id]
+        box = current_player.getBoundingBox()
+        team = current_player.getTeam()
+        if team == 1: 
+            color = team1Color
+        elif team == 2: 
+            color = team2Color
+        else: 
+            color = (0,0,0)
         p1 = (int(box[0]), int(box[1]))
         p2 = (int(box[0] + box[2]), int(box[1] + box[3]))
-        cv.rectangle(img, p1, p2, (0,0,0), 2, 1)
+        cv.rectangle(img, p1, p2, color, 2, 1)
         (w, h), _ = cv.getTextSize(str(player_id), cv.FONT_HERSHEY_SIMPLEX, 0.6, 2)
-        cv.rectangle(img, (int(box[0]), int(box[1])-20), (int(box[0])+w+10, int(box[1])), (0,0,0), -1)
+        cv.rectangle(img, (int(box[0]), int(box[1])-20), (int(box[0])+w+10, int(box[1])), color, -1)
         cv.putText(img, str(player_id), (int(box[0])+5, int(box[1])-5), cv.FONT_HERSHEY_SIMPLEX, 0.6, (255,255,255), 2)
     return img
 
