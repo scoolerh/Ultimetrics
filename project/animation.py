@@ -24,6 +24,7 @@ teamData = open("./teams.csv")
 teamDataReader = csv.reader(teamData)
 playerDataReader = csv.reader(open("playercoordinates.csv"))
 header = next(playerDataReader, False)
+print(header)
 numPlayers = int((.5)*(len(header)))
 #initialize the lables for the players
 
@@ -153,8 +154,5 @@ writer = animation.FFMpegWriter(
      fps=8, metadata=dict(artist='Conor_And_Taylor'), bitrate=800)
 anim.save("frisbeeMovie.mp4", writer=writer)
 print("Animation complete. ------------------------------------------------------------------------")
-
-
-
 
 plt.close()
