@@ -162,7 +162,7 @@ def redetectPlayers(img, game, redetect_all=False):
         game.removeAllPlayersFromField(img)
         for player_id, detected_player in players_to_update:
             game.all_players[player_id].updateBoundingBox(detected_player)
-            game.addPlayerToField(player_id)
+            game.addPlayerToField(player_id, img)
         game.updatePlayerMultitracker(img)
     else:
         detected_boxes_to_add = []
