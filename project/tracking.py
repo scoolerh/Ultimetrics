@@ -162,7 +162,7 @@ def redetectPlayers(img, game, redetect_all=False):
         game.removeAllPlayersFromField(img)
         for player_id, detected_player in players_to_update:
             game.all_players[player_id].updateBoundingBox(detected_player)
-            game.addPlayerToField(player_id)
+            game.addPlayerToField(player_id, img)
         game.updatePlayerMultitracker(img)
     else:
         detected_boxes_to_add = []
@@ -224,7 +224,11 @@ def redetectPlayers(img, game, redetect_all=False):
 def writePlayerBoundingBoxes(img, game):
     players_on_field = game.getPlayersOnField()
     for player_id in players_on_field:
-        box = game.all_players[player_id].getBoundingBox()
+        current_player = game.all_players[player_id]
+        box = current_player.getBoundingBox()
+        team = current_player.getTeam()
+
+        
         p1 = (int(box[0]), int(box[1]))
         p2 = (int(box[0] + box[2]), int(box[1] + box[3]))
         cv.rectangle(img, p1, p2, (0,0,0), 2, 1)
@@ -278,9 +282,11 @@ class Game:
         self.destination_matrix = destination_matrix
         self.transformation_matrix = self.updateTransformationMatrix()
 
+    # Return the players_on_field array
     def getPlayersOnField(self):
         return self.players_on_field
     
+    # Return the corner bounding boxs
     def getCornerBoundingBoxes(self):
         return self.corner_bounding_boxes
            
@@ -312,10 +318,12 @@ class Game:
                 self.updatePlayerMultitracker(img)
                 break
     
+    # Remove every player from being recognized as on the field and update the multi-tracker with img
     def removeAllPlayersFromField(self, img):
         self.players_on_field = []
         self.updatePlayerMultitracker(img)
     
+    # Updates our player multi-tracker with a new image
     def updatePlayerMultitracker(self, img):
         new_player_multi_tracker = cv.legacy.MultiTracker_create()
         for player_id in self.players_on_field:
@@ -324,7 +332,7 @@ class Game:
             new_player_multi_tracker.add(new_player_tracker, img, player_bbox)
         self.player_multi_tracker = new_player_multi_tracker
     
-    # take in image (next frame), generate player bboxs and corners using our mutitrackers (take in an image and array of bboxes)
+    # Take in image (next frame), generate player bboxs and corners using our mutitrackers (take in an image and array of bboxes)
     def updateCorners(self, img):
         # updates multitracker
         success, updated_corner_bounding_boxes = self.corner_multi_tracker.update(img)
@@ -371,6 +379,7 @@ class Game:
             source[i][0] = middleCoords[0]
             source[i][1] = middleCoords[1]
         # This opencv function returns a matrix which translates our pixel coordinates into relative field coordinates
+        # More specifically, provides a matrix M such that source*M = destination_matrix
         self.transformation_matrix = cv.getPerspectiveTransform(source, self.destination_matrix)
     
 # Player class to store information on 
