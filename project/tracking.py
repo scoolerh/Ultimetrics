@@ -278,9 +278,11 @@ class Game:
         self.destination_matrix = destination_matrix
         self.transformation_matrix = self.updateTransformationMatrix()
 
+    # Return the players_on_field array
     def getPlayersOnField(self):
         return self.players_on_field
     
+    # Return the corner bounding boxs
     def getCornerBoundingBoxes(self):
         return self.corner_bounding_boxes
            
@@ -312,10 +314,12 @@ class Game:
                 self.updatePlayerMultitracker(img)
                 break
     
+    # Remove every player from being recognized as on the field and update the multi-tracker with img
     def removeAllPlayersFromField(self, img):
         self.players_on_field = []
         self.updatePlayerMultitracker(img)
     
+    # Updates our player multi-tracker with a new image
     def updatePlayerMultitracker(self, img):
         new_player_multi_tracker = cv.legacy.MultiTracker_create()
         for player_id in self.players_on_field:
@@ -324,7 +328,7 @@ class Game:
             new_player_multi_tracker.add(new_player_tracker, img, player_bbox)
         self.player_multi_tracker = new_player_multi_tracker
     
-    # take in image (next frame), generate player bboxs and corners using our mutitrackers (take in an image and array of bboxes)
+    # Take in image (next frame), generate player bboxs and corners using our mutitrackers (take in an image and array of bboxes)
     def updateCorners(self, img):
         # updates multitracker
         success, updated_corner_bounding_boxes = self.corner_multi_tracker.update(img)
@@ -371,6 +375,7 @@ class Game:
             source[i][0] = middleCoords[0]
             source[i][1] = middleCoords[1]
         # This opencv function returns a matrix which translates our pixel coordinates into relative field coordinates
+        # More specifically, provides a matrix M such that source*M = destination_matrix
         self.transformation_matrix = cv.getPerspectiveTransform(source, self.destination_matrix)
     
 # Player class to store information on 
