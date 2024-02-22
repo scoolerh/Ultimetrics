@@ -224,7 +224,11 @@ def redetectPlayers(img, game, redetect_all=False):
 def writePlayerBoundingBoxes(img, game):
     players_on_field = game.getPlayersOnField()
     for player_id in players_on_field:
-        box = game.all_players[player_id].getBoundingBox()
+        current_player = game.all_players[player_id]
+        box = current_player.getBoundingBox()
+        team = current_player.getTeam()
+
+        
         p1 = (int(box[0]), int(box[1]))
         p2 = (int(box[0] + box[2]), int(box[1] + box[3]))
         cv.rectangle(img, p1, p2, (0,0,0), 2, 1)
