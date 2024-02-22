@@ -323,13 +323,22 @@ def animateGame(game):
 
     for player_id, player in players_dictionary.items():
         coordinate_history = player.getCoordinateHistory()
-        num_frames = len(coordinate_history)
-        smoothed_data = [[] for _ in range(num_frames)]
-        for frame_index in range(num_frames):
-            x_coord, y_coord = coordinate_history[frame_index][0], coordinate_history[frame_index][1]
-            smoothed_data[frame_index] = savgol_filter([x_coord, y_coord], 10, 3)
-        
+        x_coords = [frame[0] for frame in coordinate_history]
+        y_coords = [frame[1] for frame in coordinate_history]
+        smoothed_x = savgol_filter(x_coords, 10, 3)
+        smoothed_y = savgol_filter(y_coords, 10, 3)
+        smoothed_data = list(zip(smoothed_x, smoothed_y))
         player.setSmoothedHistory(smoothed_data)
+
+    # for player_id, player in players_dictionary.items():
+    #     coordinate_history = player.getCoordinateHistory()
+    #     num_frames = len(coordinate_history)
+    #     smoothed_data = [[] for _ in range(num_frames)]
+    #     for frame_index in range(num_frames):
+    #         x_coord, y_coord = coordinate_history[frame_index][0], coordinate_history[frame_index][1]
+    #         smoothed_data[frame_index] = savgol_filter([x_coord, y_coord], 10, 3)
+        
+    #     player.setSmoothedHistory(smoothed_data)
 
     # plot static graph
     fig, ax = generate_field()
