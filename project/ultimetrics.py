@@ -43,7 +43,7 @@ def load_model():
     global model
     if not model:
         # load model
-        rf = Roboflow(api_key=API_KEY_ROBOFLOW)
+        rf = Roboflow.Roboflow(api_key=API_KEY_ROBOFLOW)
         project = rf.workspace().project(PROJECT_NAME)
         model = project.version(VERSION).model
 
