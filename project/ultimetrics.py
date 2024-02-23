@@ -51,25 +51,47 @@ def detect(image):
     
     load_model()
 
-    response = model.predict(image, confidence=40, overlap=30).json()
+    # perform inference
+    results = model(image, size=640)
 
+    # inference with test time augmentation
+    results = model(image, augment=True)
+
+    # parse results
     bboxes = []
-    for item in response['predictions']:
-        x = item['x']
-        y = item['y']
-        width = item['width']
-        height = item['height']
+    predictions = results.pred[0]
+    boxes = predictions[:, :4] # x1, y1, x2, y2
+    boxes.tolist()
 
-        x_topleft = round(x - width / 2)
-        y_topleft = round(y - height / 2)
-        box_width = round(x + width / 2) - x_topleft
-        box_height = round(y + height / 2) - y_topleft
-        bbox = (x_topleft, y_topleft, box_width, box_height)
-        bboxes.append(bbox)
-
-    # Convert bounding box to correct coordinates for tracking
+    for i in range(0, len(boxes)):
+        x1 = round(boxes[i][0].item())
+        y1 = round(boxes[i][1].item())
+        width = round(boxes[i][2].item()) - x1
+        height = round(boxes[i][3].item()) - y1
+        bboxes.append((x1, y1, width, height))
 
     return bboxes
+
+#=======================Pre-trained model + our own data==================================
+    # response = model.predict(image, confidence=40, overlap=30).json()
+
+    # bboxes = []
+    # for item in response['predictions']:
+    #     x = item['x']
+    #     y = item['y']
+    #     width = item['width']
+    #     height = item['height']
+
+    #     x_topleft = round(x - width / 2)
+    #     y_topleft = round(y - height / 2)
+    #     box_width = round(x + width / 2) - x_topleft
+    #     box_height = round(y + height / 2) - y_topleft
+    #     bbox = (x_topleft, y_topleft, box_width, box_height)
+    #     bboxes.append(bbox)
+
+    # # Convert bounding box to correct coordinates for tracking
+
+    # return bboxes
 
 # use object detection to find players 
 def detectionSelection(img, game):
