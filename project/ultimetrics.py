@@ -43,9 +43,15 @@ def load_model():
     global model
     if not model:
         # load model
-        rf = Roboflow.Roboflow(api_key=API_KEY_ROBOFLOW)
-        project = rf.workspace().project(PROJECT_NAME)
-        model = project.version(VERSION).model
+        model = yolov5.load('keremberke/yolov5m-football')
+
+        # set model parameters
+        model.conf = 0.45  # NMS confidence threshold
+        model.iou = 0.45  # NMS IoU threshold
+        model.agnostic = False  # NMS class-agnostic
+        model.multi_label = False  # NMS multiple labels per box
+        model.max_det = 14  # maximum number of detections per image
+
 
 def detect(image):
     
@@ -73,6 +79,9 @@ def detect(image):
     return bboxes
 
 #=======================Pre-trained model + our own data==================================
+    # rf = Roboflow.Roboflow(api_key=API_KEY_ROBOFLOW)
+    # project = rf.workspace().project(PROJECT_NAME)
+    # model = project.version(VERSION).model
     # response = model.predict(image, confidence=40, overlap=30).json()
 
     # bboxes = []
@@ -152,7 +161,7 @@ def createPlayerNumberImage(img, player_number):
 # This is a function for prompting the user to enter the number of players that are on the field at a particular frame (img)
 def getPlayerCount(img):
     # Text we want to display
-    text = "Type the number of players on the field, then press ENTER."
+    text = "Type the number of players on the field, then press enter."
     # Generate image
     image_copy = displayInstructions(img, text)
 
@@ -289,18 +298,18 @@ def writeCornerBoundingBox(img, box, color=(0,0,0)):
 
 # ======================= ANIMATION ==================================================
  
-#create the frisbee field - 40 x 110 for a vertical field display
+#create the frisbee field - 110 x 40
 def generate_field() :
-    field = patches.Rectangle((0, 0), 40.0, 110.0, linewidth=2, edgecolor='white', facecolor='green', zorder=0)
+    field = patches.Rectangle((0, 0), 110.0, 40.0, linewidth=2, edgecolor='white', facecolor='green', zorder=0)
     #initialize figure and axis data
-    fig, ax = plt.subplots(1, figsize=(4, 11))
+    fig, ax = plt.subplots(1, figsize=(11, 4))
     ax.add_patch(field)
     #add field lines
-    ax.axvline(x=0.0, color="white", zorder=1)
-    ax.axvline(x=40.0, color="white",zorder=1)
+    ax.axvline(x=20.0, color="white", zorder=1)
+    ax.axvline(x=90.0, color="white",zorder=1)
     #add horizontal lines to give axis context
-    ax.axhline(y=20.0, color="white",zorder=1)
-    ax.axhline(y=90.0, color="white",zorder=1)
+    ax.axhline(y=0.0, color="white",zorder=1)
+    ax.axhline(y=40.0, color="white",zorder=1)
     plt.axis('off')
 
     #creating scatter plots for the players? Maybe something we want to do
@@ -349,19 +358,15 @@ def animateGame(game):
 
     # Animation function
     def update(frame):
-        #remove labels
-        for text in ax.texts:
-            text.remove()
         for player_id, player_line in player_lines.items():
             smoothed_history = players_dictionary[player_id].getSmoothedHistory()
             if frame < len(smoothed_history):
                 x_coord, y_coord = smoothed_history[frame]
-                player_line.set_data(y_coord, x_coord)
-                ax.text(y_coord, x_coord, player_id, color="black", ha='center', va='center', fontsize=8)
+                player_line.set_data(x_coord, y_coord)
         return list(player_lines.values())
     
     animation = animationLib.FuncAnimation(fig, update, frames=len(players_dictionary[1].getSmoothedHistory()), interval=50, blit=True)
-    writer = animationLib.FFMpegWriter(fps=6, metadata=dict(artist='Ultimetrics_Comps_Group'), bitrate=800)
+    writer = animationLib.FFMpegWriter(fps=8, metadata=dict(artist='Jack_and_Ethan'), bitrate=800)
     animation.save("frisbeeAnimation.mp4", writer=writer)
 
     print("Animation complete.")
@@ -556,6 +561,7 @@ def main():
     # Name of mp4 with frisbee film
     file_name = 'frisbee.mp4'
     # file_name = 'huck.mp4'
+
     # Load the video
     cap = cv.VideoCapture(file_name)
 
@@ -606,7 +612,7 @@ def main():
         bbox = cv.selectROI('Identify missing players.', img, False, printNotice=False)
         display_img = displayInstructions(img, "Draw a box around any players that don\'t currently have a box around them.")
         while (bbox[2] == 0 or bbox[3] == 0):
-            bbox = cv.selectROI('Identify missing players.', display_img, False, printNotice=False)
+            bbox = cv.selectROI('Identify missing players.', img, False, printNotice=False)
         # add player to game and field
         player_id = game.addPlayerToGame(bbox, True, img)
         writePlayerBoundingBox(img, game, player_id)
