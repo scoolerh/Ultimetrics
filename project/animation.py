@@ -135,6 +135,11 @@ def update(frame):
     nextData = next(playerDataReader, False)
     
     if (nextData) :
+
+        # Remove previous labels
+        for text in ax.texts:
+            text.remove()
+
         #update each player
         for i in range (0, len(nextData)-1, 2) :
             playerVal = int((.5) * (i - 1))
@@ -159,7 +164,7 @@ def update(frame):
 
 anim = animation.FuncAnimation(fig, update, frames=range(1,numFrames), repeat=False, interval=100)
 writer = animation.FFMpegWriter(
-     fps=8, metadata=dict(artist='Conor_And_Taylor'), bitrate=800)
+     fps=6, metadata=dict(artist='Conor_And_Taylor'), bitrate=800)
 anim.save("frisbeeMovie.mp4", writer=writer)
 print("Animation complete. ------------------------------------------------------------------------")
 
