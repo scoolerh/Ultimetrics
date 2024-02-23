@@ -22,7 +22,7 @@ model = None
 # [xCoord, yCoord] where these are the X and Y coordinates of the bottom middle location of the bounding box
 def getBottomMiddleCoords(box):
     xCoord = (box[0]+(box[2]/2))
-    yCoord = (box[1]-box[3])
+    yCoord = (box[1]+box[3])
     return [xCoord, yCoord]
 
 # Given a bounding box of a player, this computes the middle coordinates of the box
@@ -32,7 +32,7 @@ def getBottomMiddleCoords(box):
 # [xCoord, yCoord] where these are the X and Y coordinates of the middle location of the bounding box
 def getMiddleCoords(box):
     xCoord = (box[0]+(box[2]/2))
-    yCoord = (box[1]-(box[3]/2))
+    yCoord = (box[1]+(box[3]/2))
     return [xCoord, yCoord]
 
 # ============= OBJECT DETECTION ========================================
@@ -205,7 +205,7 @@ def redetectPlayers(img, game, redetect_all=False):
                 if tracked_player.id in game.players_on_field:
                     tracked_player_bbox = tracked_player.getBoundingBox()
                     distance = math.dist(getBottomMiddleCoords(tracked_player_bbox), detected_player_location)
-                    if distance < detected_player_bbox[3]*0.75:
+                    if distance < detected_player_bbox[2]:
                         # print("matched: " + str(distance))
                         found_match = True
                         break
@@ -218,7 +218,6 @@ def redetectPlayers(img, game, redetect_all=False):
                 player_id_to_change = game.removeClosestTwoPlayers()
                 game.all_players[player_id_to_change].updateBoundingBox(detected_bbox)
                 game.addPlayerToField(player_id_to_change, img)
-                
             else:
                 game.addNewDetectedPlayerToField(detected_bbox, img)
             # game.addPlayerToGame(detected_bbox, True, img)
@@ -533,8 +532,8 @@ class Player:
 
 def main():
     # Name of mp4 with frisbee film
-    # file_name = 'frisbee.mp4'
-    file_name = 'huck.mp4'
+    file_name = 'frisbee.mp4'
+    # file_name = 'huck.mp4'
 
     # Load the video
     cap = cv.VideoCapture(file_name)
@@ -544,6 +543,10 @@ def main():
     if not ret:
         print("Failed to read frame from video source. Exiting...")
         exit()
+
+    fourcc = cv.VideoWriter_fourcc(*'MP4V')
+    out = cv.VideoWriter(filename='trackedGameVideoFile.mp4', fourcc=fourcc, fps=4.0, frameSize=(img.shape[1], img.shape[0]))
+
 
     # lists for storing information about players and corners 
     corner_bounding_boxes = []
@@ -638,7 +641,7 @@ def main():
 
         img = writePlayerBoundingBoxes(img, game)
 
-        game.addToAllPlayerCoordinateHistories()  
+        out.write(img)
 
         cv.imshow("Tracking...", img)
 
@@ -651,6 +654,8 @@ def main():
             redetectPlayers(img, game)
             img = writePlayerBoundingBoxes(img, game)
             counter = 0
+        
+        game.addToAllPlayerCoordinateHistories()
 
         # grab every 10th frame to speed up testing
         for i in range(4):
@@ -662,6 +667,7 @@ def main():
     print("Tracking complete.")
 
     cap.release()
+    out.release()
     cv.destroyAllWindows()
 
     animateGame(game)
