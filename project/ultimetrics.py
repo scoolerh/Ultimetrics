@@ -289,18 +289,18 @@ def writeCornerBoundingBox(img, box, color=(0,0,0)):
 
 # ======================= ANIMATION ==================================================
  
-#create the frisbee field - 110 x 40
+#create the frisbee field - 40 x 110 for a vertical field display
 def generate_field() :
-    field = patches.Rectangle((0, 0), 110.0, 40.0, linewidth=2, edgecolor='white', facecolor='green', zorder=0)
+    field = patches.Rectangle((0, 0), 40.0, 110.0, linewidth=2, edgecolor='white', facecolor='green', zorder=0)
     #initialize figure and axis data
-    fig, ax = plt.subplots(1, figsize=(11, 4))
+    fig, ax = plt.subplots(1, figsize=(4, 11))
     ax.add_patch(field)
     #add field lines
-    ax.axvline(x=20.0, color="white", zorder=1)
-    ax.axvline(x=90.0, color="white",zorder=1)
+    ax.axvline(x=0.0, color="white", zorder=1)
+    ax.axvline(x=40.0, color="white",zorder=1)
     #add horizontal lines to give axis context
-    ax.axhline(y=0.0, color="white",zorder=1)
-    ax.axhline(y=40.0, color="white",zorder=1)
+    ax.axhline(y=20.0, color="white",zorder=1)
+    ax.axhline(y=90.0, color="white",zorder=1)
     plt.axis('off')
 
     #creating scatter plots for the players? Maybe something we want to do
@@ -349,15 +349,19 @@ def animateGame(game):
 
     # Animation function
     def update(frame):
+        #remove labels
+        for text in ax.texts:
+            text.remove()
         for player_id, player_line in player_lines.items():
             smoothed_history = players_dictionary[player_id].getSmoothedHistory()
             if frame < len(smoothed_history):
                 x_coord, y_coord = smoothed_history[frame]
-                player_line.set_data(x_coord, y_coord)
+                player_line.set_data(y_coord, x_coord)
+                ax.text(y_coord, x_coord, player_id, color="black", ha='center', va='center', fontsize=8)
         return list(player_lines.values())
     
     animation = animationLib.FuncAnimation(fig, update, frames=len(players_dictionary[1].getSmoothedHistory()), interval=50, blit=True)
-    writer = animationLib.FFMpegWriter(fps=8, metadata=dict(artist='Jack_and_Ethan'), bitrate=800)
+    writer = animationLib.FFMpegWriter(fps=6, metadata=dict(artist='Ultimetrics_Comps_Group'), bitrate=800)
     animation.save("frisbeeAnimation.mp4", writer=writer)
 
     print("Animation complete.")
