@@ -10,7 +10,7 @@ import matplotlib.animation as animationLib
 import warnings
 from scipy.signal import savgol_filter
 import roboflow as Roboflow
-# from Ultimetrics.project.Ultimetrics.project.api_key import API_KEY_ROBOFLOW, PROJECT_NAME, VERSION
+# from api_key import API_KEY_ROBOFLOW, PROJECT_NAME, VERSION
 warnings.filterwarnings("ignore")
 
 team1Color = (255,0,54)
@@ -36,6 +36,9 @@ def getMiddleCoords(box):
     xCoord = (box[0]+(box[2]/2))
     yCoord = (box[1]+(box[3]/2))
     return [xCoord, yCoord]
+
+def getBoxSize(box):
+    return box[2]*box[3]
 
 # ============= OBJECT DETECTION ========================================
 
@@ -468,9 +471,12 @@ class Game:
                             closest_two_players[2] = compared_player_id
             start_index += 1
         
-        # TO-DO: optimize which one to choose
-        # arbitrarily pick first player
-        player_id_to_remove = closest_two_players[1]
+        # pick larger box to remove
+        player_id_to_remove = None
+        if getBoxSize(self.all_players[closest_two_players[1]].getBoundingBox()) > getBoxSize(self.all_players[closest_two_players[2]].getBoundingBox()):
+            player_id_to_remove = closest_two_players[1]
+        else:
+            player_id_to_remove = closest_two_players[0]
         self.removePlayerFromField(player_id_to_remove)
         return player_id_to_remove
     
@@ -518,7 +524,8 @@ class Game:
                 transformed_y_value = transformed_coordinates[1]
                 player.addToCoordinateHistory([transformed_x_value, transformed_y_value])
             else:
-                player.addToCoordinateHistory([None,None])
+                player_history = player.getCoordinateHistory()
+                player.addToCoordinateHistory(player_history[len(player_history) - 1])
     
     def updateTransformationMatrix(self):
         # initialize empty source array
@@ -567,6 +574,9 @@ class Player:
         return self.team
 
 def main():
+
+    watch_tracking = False
+
     # Name of mp4 with frisbee film
     file_name = 'frisbee.mp4'
     # file_name = 'huck.mp4'
@@ -580,7 +590,7 @@ def main():
         print("Failed to read frame from video source. Exiting...")
         exit()
 
-    fourcc = cv.VideoWriter_fourcc(*'MP4V')
+    fourcc = cv.VideoWriter_fourcc(*'mp4v')
     out = cv.VideoWriter(filename='trackedGameVideoFile.mp4', fourcc=fourcc, fps=4.0, frameSize=(img.shape[1], img.shape[0]))
 
 
@@ -649,7 +659,8 @@ def main():
  
     counter = 0
     # Loop through video
-    cv.namedWindow("Tracking...", cv.WINDOW_NORMAL)
+    if watch_tracking:
+        cv.namedWindow("Tracking...", cv.WINDOW_NORMAL)
     while cap.isOpened():
         success, img = cap.read()
         counter += 1
@@ -675,11 +686,10 @@ def main():
         if not success:
             print("Full redection failed :(")
 
-        img = writePlayerBoundingBoxes(img, game)
-
-        out.write(img)
-
-        cv.imshow("Tracking...", img)
+        if watch_tracking:
+            img = writePlayerBoundingBoxes(img, game)
+            out.write(img)
+            cv.imshow("Tracking...", img)
 
         # Exit if ESC pressed
         k = cv.waitKey(1) & 0xff
@@ -688,7 +698,8 @@ def main():
         # check for routine redetection
         if counter >= 8:
             redetectPlayers(img, game)
-            img = writePlayerBoundingBoxes(img, game)
+            if watch_tracking:
+                img = writePlayerBoundingBoxes(img, game)
             counter = 0
         
         game.addToAllPlayerCoordinateHistories()
