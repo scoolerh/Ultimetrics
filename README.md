@@ -23,4 +23,4 @@ python3 ultimetrics.py
 ```
 ## Contributing
 
-For questions about the project or contributing to the project, reach out the [Eric Alexander](https://cs.carleton.edu/faculty/ealexander/).
+For questions about the project or contributing to the project, reach out to [Eric Alexander](https://cs.carleton.edu/faculty/ealexander/).
