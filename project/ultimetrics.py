@@ -133,7 +133,7 @@ def createPlayerNumberImage(img, player_number):
 # This is a function for prompting the user to enter the number of players that are on the field at a particular frame (img)
 def getPlayerCount(img):
     # Text we want to display
-    text = "Type the number of players on the field, then press enter."
+    text = "Type the number of players on the field, then press ENTER."
     # Generate image
     image_copy = displayInstructions(img, text)
 
@@ -531,9 +531,8 @@ class Player:
 
 def main():
     # Name of mp4 with frisbee film
-    # file_name = 'frisbee.mp4'
-    file_name = 'huck.mp4'
-
+    file_name = 'frisbee.mp4'
+    # file_name = 'huck.mp4'
     # Load the video
     cap = cv.VideoCapture(file_name)
 
@@ -580,7 +579,7 @@ def main():
         bbox = cv.selectROI('Identify missing players.', img, False, printNotice=False)
         display_img = displayInstructions(img, "Draw a box around any players that don\'t currently have a box around them.")
         while (bbox[2] == 0 or bbox[3] == 0):
-            bbox = cv.selectROI('Identify missing players.', img, False, printNotice=False)
+            bbox = cv.selectROI('Identify missing players.', display_img, False, printNotice=False)
         # add player to game and field
         player_id = game.addPlayerToGame(bbox, True, img)
         writePlayerBoundingBox(img, game, player_id)
