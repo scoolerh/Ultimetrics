@@ -9,6 +9,8 @@ import matplotlib.patches as patches
 import matplotlib.animation as animationLib
 import warnings
 from scipy.signal import savgol_filter
+import roboflow as Roboflow
+from api_key import API_KEY_ROBOFLOW, PROJECT_NAME, VERSION
 warnings.filterwarnings("ignore")
 
 team1Color = (255,0,54)
@@ -41,37 +43,31 @@ def load_model():
     global model
     if not model:
         # load model
-        model = yolov5.load('keremberke/yolov5m-football')
-        
-        # set model parameters
-        model.conf = 0.45  # NMS confidence threshold
-        model.iou = 0.45  # NMS IoU threshold
-        model.agnostic = False  # NMS class-agnostic
-        model.multi_label = False  # NMS multiple labels per box
-        model.max_det = 14  # maximum number of detections per image
+        rf = Roboflow(api_key=API_KEY_ROBOFLOW)
+        project = rf.workspace().project(PROJECT_NAME)
+        model = project.version(VERSION).model
 
 def detect(image):
     
     load_model()
 
-    # perform inference
-    results = model(image, size=640)
+    response = model.predict(image, confidence=40, overlap=30).json()
 
-    # inference with test time augmentation
-    results = model(image, augment=True)
-
-    # parse results
     bboxes = []
-    predictions = results.pred[0]
-    boxes = predictions[:, :4] # x1, y1, x2, y2
-    boxes.tolist()
+    for item in response['predictions']:
+        x = item['x']
+        y = item['y']
+        width = item['width']
+        height = item['height']
 
-    for i in range(0, len(boxes)):
-        x1 = round(boxes[i][0].item())
-        y1 = round(boxes[i][1].item())
-        width = round(boxes[i][2].item()) - x1
-        height = round(boxes[i][3].item()) - y1
-        bboxes.append((x1, y1, width, height))
+        x_topleft = round(x - width / 2)
+        y_topleft = round(y - height / 2)
+        box_width = round(x + width / 2) - x_topleft
+        box_height = round(y + height / 2) - y_topleft
+        bbox = (x_topleft, y_topleft, box_width, box_height)
+        bboxes.append(bbox)
+
+    # Convert bounding box to correct coordinates for tracking
 
     return bboxes
 
