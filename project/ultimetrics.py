@@ -10,7 +10,7 @@ import matplotlib.animation as animationLib
 import warnings
 from scipy.signal import savgol_filter
 import roboflow as Roboflow
-from api_key import API_KEY_ROBOFLOW, PROJECT_NAME, VERSION
+# from Ultimetrics.project.Ultimetrics.project.api_key import API_KEY_ROBOFLOW, PROJECT_NAME, VERSION
 warnings.filterwarnings("ignore")
 
 team1Color = (255,0,54)
@@ -300,23 +300,23 @@ def writeCornerBoundingBox(img, box, color=(0,0,0)):
  
 #create the frisbee field - 110 x 40
 def generate_field() :
-    field = patches.Rectangle((0, 0), 110.0, 40.0, linewidth=2, edgecolor='white', facecolor='green', zorder=0)
+    field = patches.Rectangle((0, 0), 40.0, 110.0, linewidth=2, edgecolor='white', facecolor='green', zorder=0)
     #initialize figure and axis data
-    fig, ax = plt.subplots(1, figsize=(11, 4))
+    fig, ax = plt.subplots(1, figsize=(4, 11))
     ax.add_patch(field)
     #add field lines
-    ax.axvline(x=20.0, color="white", zorder=1)
-    ax.axvline(x=90.0, color="white",zorder=1)
+    ax.axvline(x=0.0, color="white", zorder=1)
+    ax.axvline(x=40.0, color="white",zorder=1)
     #add horizontal lines to give axis context
-    ax.axhline(y=0.0, color="white",zorder=1)
-    ax.axhline(y=40.0, color="white",zorder=1)
+    ax.axhline(y=20.0, color="white",zorder=1)
+    ax.axhline(y=90.0, color="white",zorder=1)
     plt.axis('off')
 
     #creating scatter plots for the players? Maybe something we want to do
     ax.scatter([], [], c= '#FF0036', label = 'Team 1', zorder=2)
     ax.scatter([], [], c= '#467EFF', label = 'Team 2', zorder=2)
     # ax.scatter([], [], c='white' , label = 'Disc', zorder=2)
-    ax.legend(loc='upper right')
+    ax.legend(loc='best')
 
     return fig, ax
 
@@ -358,11 +358,20 @@ def animateGame(game):
 
     # Animation function
     def update(frame):
+        # Remove previous labels
+        for text in ax.texts:
+            text.remove()
+
         for player_id, player_line in player_lines.items():
             smoothed_history = players_dictionary[player_id].getSmoothedHistory()
             if frame < len(smoothed_history):
                 x_coord, y_coord = smoothed_history[frame]
                 player_line.set_data(x_coord, y_coord)
+
+                # Add labels
+            label = str(player_id)
+            ax.text(y_coord, x_coord, label, color="black", ha='center', va='center', fontsize=8)
+
         return list(player_lines.values())
     
     animation = animationLib.FuncAnimation(fig, update, frames=len(players_dictionary[1].getSmoothedHistory()), interval=50, blit=True)
