@@ -476,7 +476,7 @@ class Game:
         if getBoxSize(self.all_players[closest_two_players[1]].getBoundingBox()) > getBoxSize(self.all_players[closest_two_players[2]].getBoundingBox()):
             player_id_to_remove = closest_two_players[1]
         else:
-            player_id_to_remove = closest_two_players[0]
+            player_id_to_remove = closest_two_players[2]
         self.removePlayerFromField(player_id_to_remove)
         return player_id_to_remove
     
