@@ -515,7 +515,8 @@ class Game:
                 transformed_y_value = transformed_coordinates[1]
                 player.addToCoordinateHistory([transformed_x_value, transformed_y_value])
             else:
-                player.addToCoordinateHistory([None,None])
+                player_history = player.getCoordinateHistory()
+                player.addToCoordinateHistory(player_history[len(player_history) - 1])
     
     def updateTransformationMatrix(self):
         # initialize empty source array
