@@ -372,8 +372,8 @@ def animateGame(game):
                 player_line.set_data(x_coord, y_coord)
 
                 # Add labels
-            label = str(player_id)
-            ax.text(y_coord, x_coord, label, color="black", ha='center', va='center', fontsize=8)
+                label = str(player_id)
+                ax.text(x_coord, y_coord, label, color="black", ha='center', va='center', fontsize=8)
 
         return list(player_lines.values())
     
