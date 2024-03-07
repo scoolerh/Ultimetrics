@@ -13,8 +13,6 @@ import roboflow as Roboflow
 # from api_key import API_KEY_ROBOFLOW, PROJECT_NAME, VERSION
 warnings.filterwarnings("ignore")
 
-team1Color = (255,0,54)
-team2Color = (70,126,255)
 model = None
 
 # Given a bounding box of a player, this computes the bottom-middle coordinates of the box. This is used to represent the location of the 'feet' of the player
@@ -256,6 +254,8 @@ def redetectPlayers(img, game, redetect_all=False):
 # ============== DRAWING BBOXES =======================================
 
 def writePlayerBoundingBoxes(img, game):
+    team1Color = (255,0,54)
+    team2Color = (70,126,255)
     players_on_field = game.getPlayersOnField()
     for player_id in players_on_field:
         current_player = game.all_players[player_id]
