@@ -245,7 +245,7 @@ def redetectPlayers(img, game, redetect_all=False):
         
         for detected_bbox in detected_player_boxes_to_add:
             if len(game.players_on_field) >= game.max_players:
-                player_id_to_change = game.removeClosestTwoPlayers()
+                player_id_to_change = game.removeClosestTwoPlayers(detected_bbox)
                 game.all_players[player_id_to_change].updateBoundingBox(detected_bbox)
                 game.addPlayerToField(player_id_to_change, img)
             else:
@@ -329,7 +329,7 @@ def animateGame(game):
     # Look at this for how we have changed our savgol filter
     for player_id, player in players_dictionary.items():
         coordinate_history = player.getCoordinateHistory()
-        print(coordinate_history)
+        # print(coordinate_history)
         x_coords = [frame[0] for frame in coordinate_history]
         y_coords = [frame[1] for frame in coordinate_history]
         smoothed_x = savgol_filter(x_coords, 10, 3)
@@ -453,30 +453,50 @@ class Game:
         self.players_on_field = []
         self.updatePlayerMultitracker(img)
     
-    def removeClosestTwoPlayers(self):
+    def removeClosestTwoPlayers(self, lost_bbox):
         players = list(self.all_players.items())
-        # closest_two_players = [distance, first_player_id, second_player_id]
-        closest_two_players = [sys.maxsize, None, None]
-        start_index = 1
-        for player_id, player in players:
-            if player_id in self.players_on_field:
-                for i in range(start_index, len(players)):
-                    compared_player_id, compared_player = players[i]
-                    if compared_player_id in self.players_on_field:
-                        distance = math.dist(getBottomMiddleCoords(player.getBoundingBox()), getBottomMiddleCoords(compared_player.getBoundingBox()))
-                        if distance < closest_two_players[0] and distance != 0:
-                            # found new closest two
-                            closest_two_players[0] = distance
-                            closest_two_players[1] = player_id
-                            closest_two_players[2] = compared_player_id
-            start_index += 1
+        # find top 3 closest pairs of players on the entire field
+        # syntax: top_three_player_pairs = [(first_player_id, second_player_id, distance_between),...]
+        top_three_player_pairs = [(None, None, sys.maxsize),(None, None, sys.maxsize),(None, None, sys.maxsize)]
+        for player_index, first_player_info in enumerate(players):
+            first_player_id, first_player = first_player_info
+            if first_player_id in self.players_on_field:
+                closest_player = (None, sys.maxsize)
+                player_bottom_middle_coords = getBottomMiddleCoords(first_player.getBoundingBox())
+                player_index += 1
+                while player_index < len(players):
+                    second_player_id, second_player = players[player_index]
+                    if second_player_id in self.players_on_field and second_player_id != first_player_id:
+                        distance = math.dist(player_bottom_middle_coords, getBottomMiddleCoords(second_player.getBoundingBox()))
+                        if distance < closest_player[1]:
+                            closest_player = (second_player_id, distance)
+                    player_index += 1
+                distance = closest_player[1]
+                if distance < top_three_player_pairs[0][2]:
+                    top_three_player_pairs[2] = top_three_player_pairs[1]
+                    top_three_player_pairs[1] = top_three_player_pairs[0]
+                    top_three_player_pairs[0] = (first_player_id, closest_player[0], distance)
+                elif distance < top_three_player_pairs[1][2]:
+                    top_three_player_pairs[2] = top_three_player_pairs[1]
+                    top_three_player_pairs[1] = (first_player_id, closest_player[0], distance)
+                elif distance < top_three_player_pairs[2][2]:
+                    top_three_player_pairs[2] = (first_player_id, closest_player[0], distance)
+        
+        closest_player_pair_to_lost_bbox = (None, None, sys.maxsize)
+        for first_player_id, second_player_id, distance in top_three_player_pairs:
+            if first_player_id != None and second_player_id != None:
+                first_distance = math.dist(getBottomMiddleCoords(self.all_players[first_player_id].getBoundingBox()), getBottomMiddleCoords(lost_bbox))
+                second_distance = math.dist(getBottomMiddleCoords(self.all_players[second_player_id].getBoundingBox()), getBottomMiddleCoords(lost_bbox))
+                distance = (first_distance + second_distance) / 2
+                if distance < closest_player_pair_to_lost_bbox[2]:
+                    closest_player_pair_to_lost_bbox = (first_player_id, second_player_id, distance)
         
         # pick larger box to remove
         player_id_to_remove = None
-        if getBoxSize(self.all_players[closest_two_players[1]].getBoundingBox()) > getBoxSize(self.all_players[closest_two_players[2]].getBoundingBox()):
-            player_id_to_remove = closest_two_players[1]
+        if getBoxSize(self.all_players[closest_player_pair_to_lost_bbox[0]].getBoundingBox()) > getBoxSize(self.all_players[closest_player_pair_to_lost_bbox[1]].getBoundingBox()):
+            player_id_to_remove = closest_player_pair_to_lost_bbox[0]
         else:
-            player_id_to_remove = closest_two_players[2]
+            player_id_to_remove = closest_player_pair_to_lost_bbox[1]
         self.removePlayerFromField(player_id_to_remove)
         return player_id_to_remove
     
@@ -575,7 +595,7 @@ class Player:
 
 def main():
 
-    watch_tracking = False
+    watch_tracking = True
 
     # Name of mp4 with frisbee film
     file_name = 'frisbee.mp4'
@@ -705,7 +725,7 @@ def main():
         game.addToAllPlayerCoordinateHistories()
 
         # grab every 10th frame to speed up testing
-        for i in range(4):
+        for i in range(2):
             success, img = cap.read()
             counter += 1
             if not success:
