@@ -251,6 +251,22 @@ def redetectPlayers(img, game, redetect_all=False):
             # game.addPlayerToGame(detected_bbox, True, img)
         game.updatePlayerMultitracker(img)
 
+
+def getGroundTruth(ground_truth_file, game):
+    ground_truth = ground_truth_file.readline()
+    player_location_truths_full = ground_truth.split("|")
+    player_location_truths = []
+    for location_full in player_location_truths_full:
+        player_location_split = location_full.strip().split(",")
+        player_location = []
+        for player in player_location_split:
+            if player.strip() != ' ' and player.strip() != '':
+                player_location.append(float(player.strip()))
+        if len(player_location) == 4:
+            player_location_truths.append(player_location)
+    print(player_location_truths)
+    game.checkAgainstGroundTruth(player_location_truths)
+
 # ============== DRAWING BBOXES =======================================
 
 def writePlayerBoundingBoxes(img, game):
@@ -404,6 +420,8 @@ class Game:
         self.corner_bounding_boxes = corner_bounding_boxes
         self.destination_matrix = destination_matrix
         self.transformation_matrix = self.updateTransformationMatrix()
+        self.total_ground_truth_average = 0
+        self.total_ground_truth_number = 0
 
     def getPlayersOnField(self):
         return self.players_on_field
@@ -557,6 +575,27 @@ class Game:
             source[i][1] = middleCoords[1]
         # This opencv function returns a matrix which translates our pixel coordinates into relative field coordinates
         self.transformation_matrix = cv.getPerspectiveTransform(source, self.destination_matrix)
+    
+    def checkAgainstGroundTruth(self, player_location_truths):
+        average_distance = 0
+        average_distance_total = 0
+        for player in self.all_players.values():
+            if player.id in self.players_on_field:
+                player_bottom_middle_coords = getBottomMiddleCoords(player.getBoundingBox())
+                closest_truth = (None, sys.maxsize)
+                for i, player_truth in enumerate(player_location_truths):
+                    distance = math.dist(player_bottom_middle_coords, getBottomMiddleCoords(player_truth))
+                    if distance < closest_truth[1]:
+                        closest_truth = (i, distance)
+                player_location_truths.pop(closest_truth[0])
+                average_distance = average_distance + closest_truth[1]
+                average_distance_total += 1
+        average_distance = average_distance / average_distance_total
+        self.total_ground_truth_average += average_distance
+        self.total_ground_truth_number += 1
+        self.total_ground_truth_average /= self.total_ground_truth_number
+        
+
 
 # ================= PLAYER CLASS ==================================
 
@@ -595,7 +634,9 @@ class Player:
 
 def main():
 
-    watch_tracking = True
+    watch_tracking = False
+
+    test_against_ground_truth = False
 
     # Name of mp4 with frisbee film
     file_name = 'frisbee.mp4'
@@ -619,6 +660,8 @@ def main():
     cornerNames = ["top left", "bottom left", "bottom right", "top right"]
     # # These are the coordinates of the bounding boxes for the specific test frisbee film we are using (need to be changed depending on the video that is being used)
     # corner_bounding_boxes = [(1189, 676, 11, 15), (0, 1739, 26, 30), (3513, 1662, 27, 37), (2294, 676, 21, 17)]
+    # for box in corner_bounding_boxes:
+    #     img = writeCornerBoundingBox(img, box)
 
     cv.namedWindow("Corner MultiTracker", cv.WINDOW_NORMAL)
     for j in range(4):
@@ -676,14 +719,22 @@ def main():
     cv.destroyWindow('Identify teams.')
 
     # ==================== PLAYER/CORNER TRACKING ======================================
- 
+    if test_against_ground_truth:
+        ground_truth_file = open('groundTruth.txt', 'r')
+
     counter = 0
+    ground_truth_counter = 0
+
+    if test_against_ground_truth:
+        getGroundTruth(ground_truth_file, game)
+    
     # Loop through video
     if watch_tracking:
         cv.namedWindow("Tracking...", cv.WINDOW_NORMAL)
     while cap.isOpened():
         success, img = cap.read()
         counter += 1
+        ground_truth_counter += 1
         if not success:
             break
 
@@ -722,16 +773,28 @@ def main():
                 img = writePlayerBoundingBoxes(img, game)
             counter = 0
         
+        if test_against_ground_truth and ground_truth_counter == 120:
+            getGroundTruth(ground_truth_file, game)
+            ground_truth_counter = 0
+        
         game.addToAllPlayerCoordinateHistories()
 
         # grab every 10th frame to speed up testing
         for i in range(2):
             success, img = cap.read()
             counter += 1
+            ground_truth_counter += 1
+
+            if test_against_ground_truth and ground_truth_counter == 120:
+                getGroundTruth(ground_truth_file, game)
+                ground_truth_counter = 0
+
             if not success:
                 break
 
     print("Tracking complete.")
+    if test_against_ground_truth:
+        print("Ground Truth Game Average: " + game.total_ground_truth_average)
 
     cap.release()
     out.release()
