@@ -639,6 +639,7 @@ def main():
     watch_tracking = False
 
     test_against_ground_truth = False
+    testing_frames = 20
 
     # Name of mp4 with frisbee film
     file_name = 'frisbee.mp4'
@@ -775,7 +776,7 @@ def main():
                 img = writePlayerBoundingBoxes(img, game)
             counter = 0
         
-        if test_against_ground_truth and ground_truth_counter == 120:
+        if test_against_ground_truth and ground_truth_counter == testing_frames:
             getGroundTruth(ground_truth_file, game)
             ground_truth_counter = 0
         
@@ -787,7 +788,7 @@ def main():
             counter += 1
             ground_truth_counter += 1
 
-            if test_against_ground_truth and ground_truth_counter == 120:
+            if test_against_ground_truth and ground_truth_counter == testing_frames:
                 getGroundTruth(ground_truth_file, game)
                 ground_truth_counter = 0
 

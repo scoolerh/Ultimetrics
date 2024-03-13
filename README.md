@@ -21,7 +21,30 @@ Run the following command while in the project directory:
 ```python
 python3 ultimetrics.py
 ```
+If you would like to view the tracking process while the program runs (which will take significantly longer to run), then set
+```python
+test_against_ground_truth = Truth
+```
+on line 639 of ultimetrics.py before running.
+
 Full readme and directory can be found here https://docs.google.com/document/d/1zZKS5rFvqNjbPdI5Rey-tp2sGcvSVfJuEL2VXnOxmZY/edit?usp=sharing
+
+## Testing
+In order to get the accuracy of the program, set
+```python
+test_against_ground_truth = Truth
+```
+on line 641 of ultimetrics.py and then run
+```python
+python3 ground_truth.py
+```
+where you can annotate the ground truth location of all the players for every 20 frames. You can change the frequency of frames on line 48 in ground_truth.py and on line 642 in ultimetrics.py
+
+Now, when you run 
+```python
+python3 ultimetrics.py
+```
+it will print out the average pixel distance away that the tracker is for every ground_truth frame in the video
 
 ## Contributing
 
