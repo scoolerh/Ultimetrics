@@ -3,7 +3,6 @@ import numpy as np
 import yolov5
 import math
 import sys
-import time
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import matplotlib.animation as animationLib
@@ -40,6 +39,7 @@ def getBoxSize(box):
 
 # ============= OBJECT DETECTION ========================================
 
+# Function to load our object detection model to a global variable 'model'
 def load_model():
     global model
     if not model:
@@ -53,9 +53,10 @@ def load_model():
         model.multi_label = False  # NMS multiple labels per box
         model.max_det = 14  # maximum number of detections per image
 
-
+# Function to run our object detection on a selected image
+# Input: Image (frame) from the frisbee film
+# Output: 
 def detect(image):
-    
     load_model()
 
     # perform inference
@@ -80,28 +81,29 @@ def detect(image):
     return bboxes
 
 #=======================Pre-trained model + our own data==================================
-    # rf = Roboflow.Roboflow(api_key=API_KEY_ROBOFLOW)
-    # project = rf.workspace().project(PROJECT_NAME)
-    # model = project.version(VERSION).model
-    # response = model.predict(image, confidence=40, overlap=30).json()
+# def ourModelDetect(image):
+#     rf = Roboflow.Roboflow(api_key=API_KEY_ROBOFLOW)
+#     project = rf.workspace().project(PROJECT_NAME)
+#     model = project.version(VERSION).model
+#     response = model.predict(image, confidence=40, overlap=30).json()
 
-    # bboxes = []
-    # for item in response['predictions']:
-    #     x = item['x']
-    #     y = item['y']
-    #     width = item['width']
-    #     height = item['height']
+#     bboxes = []
+#     for item in response['predictions']:
+#         x = item['x']
+#         y = item['y']
+#         width = item['width']
+#         height = item['height']
 
-    #     x_topleft = round(x - width / 2)
-    #     y_topleft = round(y - height / 2)
-    #     box_width = round(x + width / 2) - x_topleft
-    #     box_height = round(y + height / 2) - y_topleft
-    #     bbox = (x_topleft, y_topleft, box_width, box_height)
-    #     bboxes.append(bbox)
+#         x_topleft = round(x - width / 2)
+#         y_topleft = round(y - height / 2)
+#         box_width = round(x + width / 2) - x_topleft
+#         box_height = round(y + height / 2) - y_topleft
+#         bbox = (x_topleft, y_topleft, box_width, box_height)
+#         bboxes.append(bbox)
 
-    # # Convert bounding box to correct coordinates for tracking
+#     # Convert bounding box to correct coordinates for tracking
 
-    # return bboxes
+#     return bboxes
 
 # use object detection to find players 
 def detectionSelection(img, game):
