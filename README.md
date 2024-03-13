@@ -21,6 +21,8 @@ Run the following command while in the project directory:
 ```python
 python3 ultimetrics.py
 ```
+Full readme and directory can be found here https://docs.google.com/document/d/1zZKS5rFvqNjbPdI5Rey-tp2sGcvSVfJuEL2VXnOxmZY/edit?usp=sharing
+
 ## Contributing
 
 For questions about the project or contributing to the project, reach out to [Eric Alexander](https://cs.carleton.edu/faculty/ealexander/).
